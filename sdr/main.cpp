@@ -564,10 +564,10 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
       if (phase_dither) {
         // Undo phase modulation and divide by num_presums in one go
-        transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0/num_presums, inversion_phase)));
+        transform(buff.begin(), buff.end(), buff.begin(), std::bind(std::multiplies<std::complex<float>>(), std::placeholders::_1, polar((float) 1.0 / num_presums, inversion_phase)));
       } else if (num_presums != 1) {
         // Only divide by num_presums
-        transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), 1.0/num_presums));
+        transform(buff.begin(), buff.end(), buff.begin(), std::bind(std::multiplies<std::complex<float>>(), std::placeholders::_1, 1.0 / num_presums));
       }
 
       // Add to sample_sum
@@ -712,7 +712,7 @@ void transmit_worker(tx_streamer::sptr& tx_stream, rx_streamer::sptr& rx_stream)
   {
     // Setup next chirp for modulation
     if (phase_dither) {
-      transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), tx_buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0, get_next_phase(true))));
+      transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), tx_buff.begin(), std::bind(std::multiplies<std::complex<float>>(), std::placeholders::_1, polar((float) 1.0, get_next_phase(true))));
     }
 
     /*
