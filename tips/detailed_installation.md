@@ -30,6 +30,6 @@ The following guide is for **Windows**, however the steps are the same for Linux
 2. Before we create the conda environment, check that **GCC** is installed by running `gcc --version` in the WSL terminal. If the gcc command is not found, install it with `sudo apt update && sudo apt install gcc`.
 3. Navigate to the folder containing the code. If you are using a Raspberry Pi to control the SDR, then use `environment-rpi.yaml` in the next step instead. Run `conda env create -f environment.yaml`.
 4. Once the environment is installed, activate it with `conda activate uhd`.
-5. Finally, we need to install any remaining dependencies for compiling the code, such as `make`. To install them, run `sudo apt update && sudo apt install build-essential`.
+5. Finally, we need to install any remaining dependencies for compiling the code, such as `make`. To install them, run `sudo apt update` and `sudo apt install build-essential`.
 
 #### **The code is now installed and ready to be compiled and run, either manually or using the `run.py` script provided.**
