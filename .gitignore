@@ -19,3 +19,42 @@ __pycache__/
 # Notebooks
 
 .ipynb_checkpoints
+# Compiled Sources
+###################
+*.o
+*.map
+*.hex
+*.dis
+*.exe
+*.xsa
+
+# Packages 
+############
+
+# Windows Thumbnail
+######################
+Thumbs.db
+thumbs.db
+
+# Logs and Databases
+######################
+*.log
+
+# VIM Swap Files
+######################
+*.swp
+
+# VIM Swap Files
+######################
+*.pptx
+
+# Ignore ./base.base
+######################
+**/base/base/
+
+# Vivado Files
+*.jou
+*.str
+*.xsa
+*.bit
+*.hwh
