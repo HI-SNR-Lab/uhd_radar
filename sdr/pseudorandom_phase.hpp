@@ -1,9 +1,7 @@
 #ifndef PSEUDORANDOM_PHASE_HPP
 #define PSEUDORANDOM_PHASE_HPP
 
-#include <random>
-
-using namespace std;
+#include "common.hpp"
 
 // Random generators for phaase modulation
 // Seed is identical (and hard-coded) so they will each produce the same sequence
