@@ -11,6 +11,7 @@ void sig_int_handler(int) {
 /*** CONFIGURATION PARAMETERS ***/
 
 // FILENAMES
+string device_type;
 string chirp_loc;
 string output_dir;
 string save_loc;
@@ -74,10 +75,10 @@ void handleRxBuffer(size_t n_samps_in_rx_buff, rx_metadata_t& rx_md, Chirp& chir
 
     if (chirp.getPhaseDither()) {
       // Undo phase modulation and divide by num_presums in one go
-      transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0/chirp.getNumPresums(), inversion_phase)));
+      transform(buff.begin(), buff.end(), buff.begin(), std::bind(std::multiplies<complex<float>>(), polar((float) 1.0/chirp.getNumPresums(), inversion_phase)));
     } else if (chirp.getNumPresums() != 1) {
       // Only divide by num_presums
-      transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), 1.0/chirp.getNumPresums()));
+      transform(buff.begin(), buff.end(), buff.begin(), std::bind(std::multiplies<complex<float>>(), 1.0/chirp.getNumPresums()));
     }
 
     // Add to sample_sum
@@ -181,6 +182,9 @@ void wrapUp(boost::asio::posix::stream_descriptor& gps_stream, ofstream& outfile
 
 /* 
  * UHD_SAFE_MAIN
+ *
+ * @param argc The number of arguments that will be made
+ * @param argv String linking to the name of the *.yaml file being read
  */
 int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
@@ -194,29 +198,35 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
   }
   cout << "Reading from config file: " << yaml_filename << endl;
 
-  Sdr sdr(yaml_filename);
   Chirp chirp(yaml_filename);
   YAML::Node config = YAML::LoadFile(yaml_filename);
-  sdr.createUsrp();
-  sdr.setupUsrp();
-
-  //YAML::Node rf0 = config["RF0"];
- // YAML::Node rf1 = config["RF1"];
 
   YAML::Node files = config["FILES"];
+  device_type = files["type"].as<string>();
   chirp_loc = files["chirp_loc"].as<string>();
   output_dir = files["output_dir"].as<string>();
   save_loc = files["save_loc"].as<string>();
   gps_save_loc = files["gps_loc"].as<string>();
   chirp.setMaxChirpsPerFile(files["max_chirps_per_file"].as<int>());
 
-  //Merge save_loc and gps_save_loc with output_dir
+  // Merge save_loc and gps_save_loc with output_dir
   save_loc = std::filesystem::path(output_dir).string() + "/" + save_loc;
   gps_save_loc = std::filesystem::path(output_dir).string() + "/" + gps_save_loc;
 
   // Calculated parameters
-
   tr_off_delay = chirp.getTxDuration() + chirp.getTrOffTrail(); // Time before turning off GPIO
+  
+  // ZOE CONSTRUCTION SITE
+  // ZOE CONSTRUCTION SITE
+  Sdr sdr(yaml_filename);
+  if (device_type == "b200") {
+    sdr = Usrp(yaml_filename);
+  } else {
+    sdr = Usrp(yaml_filename);
+    cout << "Unfortunately, we've gotta stick to USRP right now" << endl;
+  }
+  sdr.createRadio();
+  sdr.setupRadio();
   num_tx_samps = sdr.getTxRate() * chirp.getTxDuration(); // Total samples to transmit per chirp // TODO: Should use ["GENERATE"]["sample_rate"] instead!
   num_rx_samps = sdr.getRxRate() * chirp.getRxDuration(); // Total samples to receive per chirp // TODO: Should use ["GENERATE"]["sample_rate"] instead!
 
@@ -243,14 +253,14 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
   cout << "INFO: Number of TX samples: " << num_tx_samps << endl;  //needs to be after chirp and sdr object are both made
   cout << "INFO: Number of RX samples: " << num_rx_samps << endl << endl;  //needs to be after chirp and sdr object are both made
 
- 
   // update the offset time for start of streaming to be offset from the current usrp time
-  chirp.setTimeOffset(chirp.getTimeOffset() + time_spec_t(sdr.getUsrp()->get_time_now()).get_real_secs());  //needs to be after chirp and sdr object are both made
+  chirp.setTimeOffset(chirp.getTimeOffset() + sdr.getTime());  //needs to be after chirp and sdr object are both made
 
   /*** SPAWN THE TX THREAD ***/
   boost::thread_group transmit_thread;
   transmit_thread.create_thread(boost::bind(&transmit_worker, sdr.getTxStream(), sdr.getRxStream(), boost::ref(chirp), boost::ref(sdr)));
   
+  // ZOE CONSTRUCTION SITE
   if (!sdr.getTransmit()) {
     cout << "WARNING: Transmit disabled by configuration file!" << endl;
   }
@@ -304,6 +314,7 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
   string gps_data;
 
+  // ZOE CONSTRUCTION SITE
   if (sdr.getCpuFormat() != "fc32") {
     cout << "Only cpu_format 'fc32' is supported for now." << endl;
     // This is because we actually need buff and sample_sum to have the correct
@@ -332,6 +343,7 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
   while ((chirp.getNumPulses() < 0) || (last_pulse_num_written < chirp.getNumPulses())) {
 
+    // ZOE CONSTRUCTION SITE
     n_samps_in_rx_buff = sdr.getRxStream()->recv(buffs, num_rx_samps, rx_md, 60.0, false); // TODO: Think about timeout
 
     // Check for errors in the RX buffer
@@ -432,7 +444,7 @@ void transmit_worker(tx_streamer::sptr& tx_stream, rx_streamer::sptr& rx_stream,
   {
     // Setup next chirp for modulation
     if (chirp.getPhaseDither()) {
-      transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), tx_buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0, get_next_phase(true))));
+      transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), tx_buff.begin(), std::bind(std::multiplies<complex<float>>(), polar((float) 1.0, get_next_phase(true))));
     }
 
     /*

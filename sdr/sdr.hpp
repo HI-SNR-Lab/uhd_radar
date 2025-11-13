@@ -5,15 +5,20 @@
 #include "rf_settings.hpp"
 #include "common.hpp"
 
+namespace RadioDeclaration {
+
 class Sdr {
   public:
+    Sdr();
     Sdr(const string& kYamlFile);
 
-    void createUsrp();
-    void setupUsrp();
+    virtual void createRadio();
+    virtual void setupRadio();
+    void loadConfigFromYaml(const string& kYamlFile);
 
     // DEVICE
     string getDeviceArgs() const;
+    string getType() const;
     string getSubdev() const;
     string getClkRef() const;
     double getClkRate() const;
@@ -21,15 +26,16 @@ class Sdr {
     string getRxChannels() const;
     string getCpuFormat() const;
     string getOtwFormat() const;
+    virtual double getTime() const; // this will vary by USRP to RFSoC
 
-    // GPIO
-    int getPwrAmpPin() const;
-    string getGpioBank() const;
-    uint32_t getAmpGpioMask() const;
-    uint32_t getAtrMasks() const;
-    uint32_t getAtrControl() const;
-    uint32_t getGpioDdr() const;
-    int getRefOutInt() const;
+    // // GPIO
+    // int getPwrAmpPin() const;
+    // string getGpioBank() const;
+    // uint32_t getAmpGpioMask() const;
+    // uint32_t getAtrMasks() const;
+    // uint32_t getAtrControl() const;
+    // uint32_t getGpioDdr() const;
+    // int getRefOutInt() const;
 
     // RF
     YAML::Node getRf0() const;
@@ -43,31 +49,32 @@ class Sdr {
     string getRxAnt() const;
     string getTxAnt() const;
     bool getTransmit() const;
+    
 
-    // USRP
-    usrp::multi_usrp::sptr getUsrp() const;
+    // // USRP
+    // usrp::multi_usrp::sptr getUsrp() const;
     tx_streamer::sptr getTxStream() const;
     rx_streamer::sptr getRxStream() const;
-    vector<string>& getTxChannelStrings();
-    vector<size_t>& getTxChannelNums();
-    vector<string>& getRxChannelStrings();
-    vector<size_t>& getRxChannelNums();
+    // vector<string>& getTxChannelStrings();
+    // vector<size_t>& getTxChannelNums();
+    // vector<string>& getRxChannelStrings();
+    // vector<size_t>& getRxChannelNums();
 
   private:
     friend class SdrHwTest;
-    void loadConfigFromYaml(const string& kYamlFile);
-    void check10MhzLock();
-    void gpsLock();
-    void checkAndSetTime();
-    void detectChannels();
-    void setRFParams();
-    void refLoLockDetect();
-    void setupGpio();
-    void setupTx();
-    void setupRx();
+    // void check10MhzLock();
+    // void gpsLock();
+    // void checkAndSetTime();
+    // void detectChannels();
+    virtual void setRFParams();
+    // void refLoLockDetect();
+    // void setupGpio();
+    virtual void setupTx();
+    virtual void setupRx();
 
     // DEVICE
     string device_args;
+    string type;        // Type of radio in use. See https://manpages.ubuntu.com/manpages/jammy/man1/uhd_image_loader.1.html
     string subdev;      // Active SDR submodules. See https://files.ettus.com/manual/page_configuration.html
     string clk_ref;     // Clock reference source. See https://files.ettus.com/manual/page_sync.html
     double clk_rate;    // [Hz] SDR main clock frequency
@@ -78,15 +85,15 @@ class Sdr {
     string otw_format;  // On the wire format. See https://files.ettus.com/manual/structuhd_1_1stream__args__t.html#a0ba0e946d2f83f7ac085f4f4e2ce9578
                         // (Any format supported.)
 
-    // GPIO
-    int pwr_amp_pin;        // Which GPIO pin to use for external power amplifier control (set to -1 if not using)
-    string gpio_bank;       // Which GPIO bank to use (FP0 is front panel and default)
-    uint32_t AMP_GPIO_MASK;
-    uint32_t ATR_MASKS;
-    uint32_t ATR_CONTROL;
-    uint32_t GPIO_DDR;
-    int ref_out_int;        // Turns the 10 MHz reference out signal on (1) or off (0)
-                            // set to (-1) if SDR does not support
+    // // GPIO
+    // int pwr_amp_pin;        // Which GPIO pin to use for external power amplifier control (set to -1 if not using)
+    // string gpio_bank;       // Which GPIO bank to use (FP0 is front panel and default)
+    // uint32_t AMP_GPIO_MASK;
+    // uint32_t ATR_MASKS;
+    // uint32_t ATR_CONTROL;
+    // uint32_t GPIO_DDR;
+    // int ref_out_int;        // Turns the 10 MHz reference out signal on (1) or off (0)
+    //                         // set to (-1) if SDR does not support
 
     // RF
     YAML::Node rf0; // RF FRONTEND 0
@@ -101,15 +108,17 @@ class Sdr {
     string tx_ant;  // Port to be used for TX
     bool transmit;  // "true" (or not set) for normal operation, set to "false" to completely disable transmit
 
-    // USRP
-    usrp::multi_usrp::sptr usrp;
+    // // USRP
+    // usrp::multi_usrp::sptr usrp;
     tx_streamer::sptr tx_stream;
     rx_streamer::sptr rx_stream;
-    vector<string> tx_channel_strings;
-    vector<size_t> tx_channel_nums;
-    vector<string> rx_channel_strings;
-    vector<size_t> rx_channel_nums;
+    // vector<string> tx_channel_strings;
+    // vector<size_t> tx_channel_nums;
+    // vector<string> rx_channel_strings;
+    // vector<size_t> rx_channel_nums;
 
 };
+
+} // RadioDeclaration namespace
 
 #endif

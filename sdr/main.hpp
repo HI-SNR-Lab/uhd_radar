@@ -23,7 +23,7 @@
 #include "rf_settings.hpp"
 #include "pseudorandom_phase.hpp"
 #include "utils.hpp"
-#include "sdr.hpp"
+#include "hisnr_usrp.hpp"
 #include "chirp.hpp"
 #include "common.hpp"
 
