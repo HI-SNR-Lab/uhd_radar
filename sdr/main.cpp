@@ -74,11 +74,17 @@ void handleRxBuffer(size_t n_samps_in_rx_buff, rx_metadata_t& rx_md, Chirp& chir
 
     if (chirp.getPhaseDither()) {
       // Undo phase modulation and divide by num_presums in one go
-      transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0/chirp.getNumPresums(), inversion_phase)));
-    } else if (chirp.getNumPresums() != 1) {
-      // Only divide by num_presums
-      transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), 1.0/chirp.getNumPresums()));
-    }
+      auto phase_inversion = std::polar((float) 1.0/chirp.getNumPresums(), inversion_phase);
+      auto applied_inversion = [phase_inversion](const std::complex<float>& x) { return x * phase_inversion; };
+      transform(buff.begin(), buff.end(), buff.begin(), applied_inversion);
+      // transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0/chirp.getNumPresums(), inversion_phase)));
+      } else if (chirp.getNumPresums() != 1) {
+        // Only divide by num_presums
+        float phase_change = 1.0/chirp.getNumPresums();
+        auto applied_phase = [phase_change](const std::complex<float>& x) { return x * phase_change; };
+        transform(buff.begin(), buff.end(), buff.begin(), applied_phase);
+        // transform(buff.begin(), buff.end(), buff.begin(), std::bind1st(std::multiplies<complex<float>>(), 1.0/chirp.getNumPresums()));
+      }
 
     // Add to sample_sum
     transform(sample_sum.begin(), sample_sum.end(), buff.begin(), sample_sum.begin(), plus<complex<float>>());
@@ -432,7 +438,10 @@ void transmit_worker(tx_streamer::sptr& tx_stream, rx_streamer::sptr& rx_stream,
   {
     // Setup next chirp for modulation
     if (chirp.getPhaseDither()) {
-      transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), tx_buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0, get_next_phase(true))));
+      auto chirp_modulated = polar((float) 1.0, get_next_phase(true)));
+      auto applied_modulation = [chirp_modulated](const std::complex<float>& x) { return x * chirp_modulated; };
+      transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), chirp_unmodulated.begin(), applied_modulation);
+        // transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), tx_buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0, get_next_phase(true))));
     }
 
     /*
