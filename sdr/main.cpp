@@ -438,7 +438,7 @@ void transmit_worker(tx_streamer::sptr& tx_stream, rx_streamer::sptr& rx_stream,
   {
     // Setup next chirp for modulation
     if (chirp.getPhaseDither()) {
-      auto chirp_modulated = polar((float) 1.0, get_next_phase(true)));
+      auto chirp_modulated = polar((float) 1.0, get_next_phase(true));
       auto applied_modulation = [chirp_modulated](const std::complex<float>& x) { return x * chirp_modulated; };
       transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), chirp_unmodulated.begin(), applied_modulation);
         // transform(chirp_unmodulated.begin(), chirp_unmodulated.end(), tx_buff.begin(), std::bind1st(std::multiplies<complex<float>>(), polar((float) 1.0, get_next_phase(true))));
