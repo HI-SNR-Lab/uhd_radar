@@ -52,13 +52,13 @@ void HiSnrUsrp::loadConfigFromYamlUsrp(const string& kYamlFile) {
 void HiSnrUsrp::createRadio(){
   cout << endl;
   cout << boost::format("Creating the usrp device with: %s...")
-    % device_args << endl; 
-  usrp = uhd::usrp::multi_usrp::make(device_args);
+    % getDeviceArgs() << endl; 
+  usrp = uhd::usrp::multi_usrp::make(getDeviceArgs());
   cout << boost::format("TX/RX Device: %s") % usrp->get_pp_string() << endl;
 
   // Lock mboard clocks
-  usrp->set_clock_source(clk_ref);
-  usrp->set_time_source(clk_ref);
+  usrp->set_clock_source(getClkRef());
+  usrp->set_time_source(getClkRef());
 }
 
 /**
@@ -70,7 +70,7 @@ void HiSnrUsrp::createRadio(){
 *
 */
 void HiSnrUsrp::setupRadio(){
-  if (clk_ref == "gpsdo") {
+  if (getClkRef() == "gpsdo") {
     check10MhzLock();
     gpsLock();
     checkAndSetTime();
@@ -81,13 +81,13 @@ void HiSnrUsrp::setupRadio(){
   }
   // always select the subdevice first, the channel mapping affects the
   // other settings
-  if (transmit) {
-  usrp->set_tx_subdev_spec(subdev);
+  if (getTransmit()) {
+  usrp->set_tx_subdev_spec(getSubdev());
   }
-  usrp->set_rx_subdev_spec(subdev);
+  usrp->set_rx_subdev_spec(getSubdev());
 
   // set master clock rate
-  usrp->set_master_clock_rate(clk_rate);
+  usrp->set_master_clock_rate(getClkRate());
   detectChannels();
   setRFParams();
   refLoLockDetect();
@@ -203,22 +203,38 @@ void HiSnrUsrp::checkAndSetTime(){
  * If any channel number is invalid, throws a runtime error.
  */
 void HiSnrUsrp::detectChannels(){
-  boost::split(tx_channel_strings, tx_channels, boost::is_any_of("\"',"));
-  for (size_t ch = 0; ch < tx_channel_strings.size(); ch++) {
-    size_t chan = stoi(tx_channel_strings[ch]);
+  boost::split(getTxChannelStrings(), getTxChannels(), boost::is_any_of("\"',"));
+  for (size_t ch = 0; ch < getTxChannelStrings().size(); ch++) {
+    size_t chan = stoi(getTxChannelStrings()[ch]);
     if (chan >= usrp->get_tx_num_channels()) {
       throw std::runtime_error("Invalid TX channel(s) specified.");
     } else
       tx_channel_nums.push_back(stoi(tx_channel_strings[ch]));
   }
-  boost::split(rx_channel_strings, rx_channels, boost::is_any_of("\"',"));
-  for (size_t ch = 0; ch < rx_channel_strings.size(); ch++) {
-    size_t chan = stoi(rx_channel_strings[ch]);
+  boost::split(getRxChannelStrings(), getRxChannels(), boost::is_any_of("\"',"));
+  for (size_t ch = 0; ch < getRxChannelStrings().size(); ch++) {
+    size_t chan = stoi(getRxChannelStrings()[ch]);
     if (chan >= usrp->get_rx_num_channels()) {
       throw std::runtime_error("Invalid RX channel(s) specified.");
     } else
       rx_channel_nums.push_back(stoi(rx_channel_strings[ch]));
   }
+}
+
+/*** @brief stores a new channel in the tx channel nums storage bin
+ * 
+ * With a given channel number, stores new channel string in the list
+ */
+void HiSnrUsrp::storeTxChannel(size_t ch) {
+      tx_channel_nums.push_back(stoi(tx_channel_strings[ch]));
+}
+
+/*** @brief stores a new channel in the tx channel nums storage bin
+ * 
+ * With a given channel number, stores new channel string in the list
+ */
+void HiSnrUsrp::storeRxChannel(size_t ch) {
+      rx_channel_nums.push_back(stoi(rx_channel_strings[ch]));
 }
 
 /*** @brief Sets the RF parameters for the USRP device
@@ -232,13 +248,13 @@ void HiSnrUsrp::detectChannels(){
 */
 void HiSnrUsrp::setRFParams(){
  // set the RF parameters based on 1 or 2 channel operation
-   if (tx_channel_nums.size() == 1) {
-    set_rf_params_single(usrp, rf0, rx_channel_nums, tx_channel_nums);
+   if (getTxChannelNums().size() == 1) {
+    set_rf_params_single(getUsrp(), getRf0(), getRxChannelNums(), getTxChannelNums());
   } else if (tx_channel_nums.size() == 2) {
     if (!transmit) {
       throw std::runtime_error("Non-transmit mode not supported by set_rf_params_multi");
     }
-    set_rf_params_multi(usrp, rf0, rf1, rx_channel_nums, tx_channel_nums);
+    set_rf_params_multi(getUsrp(), getRf0(), getRf1(), getRxChannelNums(), getTxChannelNums());
   } else {
     throw std::runtime_error("Number of channels requested not supported");
   }
@@ -258,8 +274,8 @@ void HiSnrUsrp::setRFParams(){
 void HiSnrUsrp::refLoLockDetect(){
  // Check Ref and LO Lock detect
   vector<std::string> tx_sensor_names, rx_sensor_names;
-  if (transmit) {
-    for (size_t ch = 0; ch < tx_channel_nums.size(); ch++) {
+  if (getTransmit()) {
+    for (size_t ch = 0; ch < getTxChannelNums().size(); ch++) {
       // Check LO locked
       tx_sensor_names = usrp->get_tx_sensor_names(ch);
       if (find(tx_sensor_names.begin(), tx_sensor_names.end(), "lo_locked") != tx_sensor_names.end())
@@ -272,7 +288,7 @@ void HiSnrUsrp::refLoLockDetect(){
     }
   }
 
-  for (size_t ch = 0; ch < rx_channel_nums.size(); ch++) {
+  for (size_t ch = 0; ch < getRxChannelNums().size(); ch++) {
     // Check LO locked
     rx_sensor_names = usrp->get_rx_sensor_names(ch);
     if (find(rx_sensor_names.begin(), rx_sensor_names.end(), "lo_locked") != rx_sensor_names.end())
@@ -315,7 +331,7 @@ void HiSnrUsrp::setupGpio(){
 //  cout << "AMP_GPIO_MASK: " << bitset<32>(AMP_GPIO_MASK) << endl;
 
   // turns external ref out port on or off
-   if (ref_out_int == 1) {
+   if (getRefOutInt() == 1) {
     usrp->set_clock_source_out(true);
   } else if (ref_out_int == 0) {
     usrp->set_clock_source_out(false);
@@ -333,11 +349,11 @@ void HiSnrUsrp::setupGpio(){
 */
 void HiSnrUsrp::setupTx(){
   // Stream formats
-  stream_args_t tx_stream_args(cpu_format, otw_format);
-  tx_stream_args.channels = tx_channel_nums;
+  stream_args_t tx_stream_args(getCpuFormat(), getOtwFormat());
+  tx_stream_args.channels = getTxChannelNums();
 
   // tx streamer
-  if (transmit) {
+  if (getTransmit()) {
     tx_stream = usrp->get_tx_stream(tx_stream_args);
     cout << "INFO: tx_stream get_max_num_samps: " << tx_stream->get_max_num_samps() << endl;
   }
@@ -351,10 +367,10 @@ void HiSnrUsrp::setupTx(){
  * received in a single call.
  */
 void HiSnrUsrp::setupRx(){
-   stream_args_t rx_stream_args(cpu_format, otw_format);
+   stream_args_t rx_stream_args(getCpuFormat(), getOtwFormat());
 
   // rx streamer
-  rx_stream_args.channels = rx_channel_nums;
+  rx_stream_args.channels = getRxChannelNums();
   rx_stream = usrp->get_rx_stream(rx_stream_args);
 
   cout << "INFO: rx_stream get_max_num_samps: " << rx_stream->get_max_num_samps() << endl;

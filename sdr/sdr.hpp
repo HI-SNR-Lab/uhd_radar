@@ -22,6 +22,9 @@ class Sdr {
     string getCpuFormat() const;
     string getOtwFormat() const;
 
+    void storeTxString();
+    void storeRxString();
+
     // GPIO - specific to USRP
     // int getPwrAmpPin() const;
     // string getGpioBank() const;
@@ -52,8 +55,6 @@ class Sdr {
     // vector<size_t>& getTxChannelNums();
     // vector<string>& getRxChannelStrings();
     // vector<size_t>& getRxChannelNums();
-
-  protected:
 
   protected:
     friend class SdrHwTest;
