@@ -10,7 +10,13 @@ add_executable(test_utils
 add_executable(test_sdr
     sdr/test_sdr.cpp
     ../sdr/sdr.cpp
-    ../sdr/rf_settings.cpp
+)
+
+add_executable(test_hisnr_usrp
+    sdr/test_hisnr_usrp.cpp
+    ../sdr/sdr.cpp
+    ../sdr/hisnr_usrp.cpp
+    ../sdr/usrp_rf_settings.cpp
 )
 
 add_executable(test_chirp
@@ -46,6 +52,14 @@ target_link_libraries(test_chirp
 target_compile_definitions(test_sdr PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
 target_include_directories(test_sdr PRIVATE ../sdr)
 target_link_libraries(test_sdr
+    gtest_main
+    Boost::filesystem
+    yaml-cpp
+)
+
+target_compile_definitions(test_hisnr_usrp PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
+target_include_directories(test_hisnr_usrp PRIVATE ../hisnr_usrp)
+target_link_libraries(test_hisnr_usrp
     uhd
     gtest_main
     Boost::filesystem
@@ -56,4 +70,5 @@ include(GoogleTest)
 gtest_discover_tests(test_utils)
 gtest_discover_tests(test_pseudorandom_phase)
 gtest_discover_tests(test_sdr)
+gtest_discover_tests(test_hisnr_usrp)
 gtest_discover_tests(test_chirp)

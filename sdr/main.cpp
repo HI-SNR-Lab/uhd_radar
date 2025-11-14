@@ -200,11 +200,12 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
   }
   cout << "Reading from config file: " << yaml_filename << endl;
 
-  Sdr sdr(yaml_filename);
+  HiSnrUsrp sdr(yaml_filename);
+
   Chirp chirp(yaml_filename);
   YAML::Node config = YAML::LoadFile(yaml_filename);
-  sdr.createUsrp();
-  sdr.setupUsrp();
+  sdr.createRadio();
+  sdr.setupRadio();
 
   //YAML::Node rf0 = config["RF0"];
  // YAML::Node rf1 = config["RF1"];
