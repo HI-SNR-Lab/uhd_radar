@@ -2,23 +2,18 @@
 #define SDR_HPP
 
 #include "yaml-cpp/yaml.h"
-#include "rf_settings.hpp"
 #include "common.hpp"
-
-namespace RadioDeclaration {
 
 class Sdr {
   public:
-    Sdr();
+    Sdr() = delete;
     Sdr(const string& kYamlFile);
 
     virtual void createRadio();
     virtual void setupRadio();
-    void loadConfigFromYaml(const string& kYamlFile);
-
-    // DEVICE
+    
+    // DEVICE - standard for all radios
     string getDeviceArgs() const;
-    string getType() const;
     string getSubdev() const;
     string getClkRef() const;
     double getClkRate() const;
@@ -26,9 +21,8 @@ class Sdr {
     string getRxChannels() const;
     string getCpuFormat() const;
     string getOtwFormat() const;
-    virtual double getTime() const; // this will vary by USRP to RFSoC
 
-    // // GPIO
+    // GPIO - specific to USRP
     // int getPwrAmpPin() const;
     // string getGpioBank() const;
     // uint32_t getAmpGpioMask() const;
@@ -49,32 +43,32 @@ class Sdr {
     string getRxAnt() const;
     string getTxAnt() const;
     bool getTransmit() const;
-    
 
-    // // USRP
+    // USRP
     // usrp::multi_usrp::sptr getUsrp() const;
-    tx_streamer::sptr getTxStream() const;
-    rx_streamer::sptr getRxStream() const;
+    // tx_streamer::sptr getTxStream() const;
+    // rx_streamer::sptr getRxStream() const;
     // vector<string>& getTxChannelStrings();
     // vector<size_t>& getTxChannelNums();
     // vector<string>& getRxChannelStrings();
     // vector<size_t>& getRxChannelNums();
 
-  private:
+  protected:
+
+  protected:
     friend class SdrHwTest;
+    void loadConfigFromYaml(const string& kYamlFile);
     // void check10MhzLock();
     // void gpsLock();
     // void checkAndSetTime();
     // void detectChannels();
     virtual void setRFParams();
-    // void refLoLockDetect();
-    // void setupGpio();
     virtual void setupTx();
-    virtual void setupRx();
+    virtual void setupRx(); 
+    // void setupGpio();
 
     // DEVICE
     string device_args;
-    string type;        // Type of radio in use. See https://manpages.ubuntu.com/manpages/jammy/man1/uhd_image_loader.1.html
     string subdev;      // Active SDR submodules. See https://files.ettus.com/manual/page_configuration.html
     string clk_ref;     // Clock reference source. See https://files.ettus.com/manual/page_sync.html
     double clk_rate;    // [Hz] SDR main clock frequency
@@ -110,15 +104,13 @@ class Sdr {
 
     // // USRP
     // usrp::multi_usrp::sptr usrp;
-    tx_streamer::sptr tx_stream;
-    rx_streamer::sptr rx_stream;
+    // tx_streamer::sptr tx_stream;
+    // rx_streamer::sptr rx_stream;
     // vector<string> tx_channel_strings;
     // vector<size_t> tx_channel_nums;
     // vector<string> rx_channel_strings;
     // vector<size_t> rx_channel_nums;
 
 };
-
-} // RadioDeclaration namespace
 
 #endif

@@ -1,23 +1,15 @@
 #include "hisnr_usrp.hpp"
 
 /**
-* @brief Throws error: it should be impossible to construct
-*         a USRP object without a parameter
-*/
-Usrp::Usrp() {
-  cout << "Error: Impossible to construct USRP without *.yaml file" << endl;
-}
-
-/**
-* @brief Constructs a new Usrp object
+* @brief Constructs a new HiSnrUsrp object
 *
-* Constructs a new Usrp object and calls the relevant functions
+* Constructs a new HiSnrUsrp object and calls the relevant functions
 * that initialize each member variable from the specified YAML file.
 *
 * @param kYamlFile Path to the YAML configuration file (config/)
 */
-Usrp::Usrp(const string& kYamlFile) {
-  loadConfigFromYamlUSRP(kYamlFile);
+HiSnrUsrp::HiSnrUsrp(const string& kYamlFile) : Sdr(kYamlFile) {
+  loadConfigFromYamlUsrp(kYamlFile);
 }
 
 /**
@@ -29,9 +21,7 @@ Usrp::Usrp(const string& kYamlFile) {
 *
 * @param kYamlFile Path to the YAML configuration file (config/)
 */
-void Usrp::loadConfigFromYamlUSRP(const string& kYamlFile) {
-  loadConfigFromYaml(kYamlFile);
-
+void HiSnrUsrp::loadConfigFromYamlUsrp(const string& kYamlFile) {
   YAML::Node config = YAML::LoadFile(kYamlFile);
 
   // GPIO
@@ -47,6 +37,7 @@ void Usrp::loadConfigFromYamlUSRP(const string& kYamlFile) {
   }
 
   ref_out_int = gpio_params["ref_out"].as<int>();
+
 }
 
 /**
@@ -58,16 +49,16 @@ void Usrp::loadConfigFromYamlUSRP(const string& kYamlFile) {
 * It ensures that the USRP device is ready for operation
 *
 */
-void Usrp::createRadio(){
+void HiSnrUsrp::createRadio(){
   cout << endl;
   cout << boost::format("Creating the usrp device with: %s...")
-    % getDeviceArgs() << endl; 
-  usrp = uhd::usrp::multi_usrp::make(getDeviceArgs());
+    % device_args << endl; 
+  usrp = uhd::usrp::multi_usrp::make(device_args);
   cout << boost::format("TX/RX Device: %s") % usrp->get_pp_string() << endl;
 
   // Lock mboard clocks
-  usrp->set_clock_source(getClkRef());
-  usrp->set_time_source(getClkRef());
+  usrp->set_clock_source(clk_ref);
+  usrp->set_time_source(clk_ref);
 }
 
 /**
@@ -78,8 +69,8 @@ void Usrp::createRadio(){
 * reference and LO locks, and initializes GPIO, transmit, and receive settings.
 *
 */
-void Usrp::setupRadio(){
-  if (getClkRef() == "gpsdo") {
+void HiSnrUsrp::setupRadio(){
+  if (clk_ref == "gpsdo") {
     check10MhzLock();
     gpsLock();
     checkAndSetTime();
@@ -90,13 +81,13 @@ void Usrp::setupRadio(){
   }
   // always select the subdevice first, the channel mapping affects the
   // other settings
-  if (getTransmit()) {
-  usrp->set_tx_subdev_spec(getSubdev());
+  if (transmit) {
+  usrp->set_tx_subdev_spec(subdev);
   }
-  usrp->set_rx_subdev_spec(getSubdev());
+  usrp->set_rx_subdev_spec(subdev);
 
   // set master clock rate
-  usrp->set_master_clock_rate(getClkRate());
+  usrp->set_master_clock_rate(clk_rate);
   detectChannels();
   setRFParams();
   refLoLockDetect();
@@ -115,7 +106,7 @@ void Usrp::setupRadio(){
 * prints "LOCKED"; otherwise, it prints "FAILED" and exits the program.
 *
 */
-void Usrp::check10MhzLock(){
+void HiSnrUsrp::check10MhzLock(){
   vector<string> sensor_names = usrp->get_mboard_sensor_names(0);
     if (find(sensor_names.begin(), sensor_names.end(), "ref_locked")
         != sensor_names.end()) {
@@ -151,7 +142,7 @@ void Usrp::check10MhzLock(){
  * isn't accurate.
  *
 */
-void Usrp::gpsLock(){
+void HiSnrUsrp::gpsLock(){
   //wait for GPS lock
   bool gps_locked = usrp->get_mboard_sensor("gps_locked", 0).to_bool();
   size_t num_gps_locked = 0;
@@ -177,7 +168,7 @@ void Usrp::gpsLock(){
  * from USRP device, and prints results. If the GPS time matches the last PPS time,
  * synchronization is indicated. If it doesn't match, an error message is printed.
  */
-void Usrp::checkAndSetTime(){
+void HiSnrUsrp::checkAndSetTime(){
   //set GPS time
     time_spec_t gps_time = time_spec_t(int64_t(usrp->get_mboard_sensor("gps_time", 0).to_int()));
     usrp->set_time_next_pps(gps_time + 1.0, 0);
@@ -211,8 +202,8 @@ void Usrp::checkAndSetTime(){
  * checks if they are valid, and stores them in the respective vectors.
  * If any channel number is invalid, throws a runtime error.
  */
-void Usrp::detectChannels(){
-  boost::split(tx_channel_strings, getTxChannels(), boost::is_any_of("\"',"));
+void HiSnrUsrp::detectChannels(){
+  boost::split(tx_channel_strings, tx_channels, boost::is_any_of("\"',"));
   for (size_t ch = 0; ch < tx_channel_strings.size(); ch++) {
     size_t chan = stoi(tx_channel_strings[ch]);
     if (chan >= usrp->get_tx_num_channels()) {
@@ -220,7 +211,7 @@ void Usrp::detectChannels(){
     } else
       tx_channel_nums.push_back(stoi(tx_channel_strings[ch]));
   }
-  boost::split(rx_channel_strings, getRxChannels(), boost::is_any_of("\"',"));
+  boost::split(rx_channel_strings, rx_channels, boost::is_any_of("\"',"));
   for (size_t ch = 0; ch < rx_channel_strings.size(); ch++) {
     size_t chan = stoi(rx_channel_strings[ch]);
     if (chan >= usrp->get_rx_num_channels()) {
@@ -229,6 +220,7 @@ void Usrp::detectChannels(){
       rx_channel_nums.push_back(stoi(rx_channel_strings[ch]));
   }
 }
+
 /*** @brief Sets the RF parameters for the USRP device
  * 
  * Configures the RF parameters for the USRP device based on the number of
@@ -238,16 +230,15 @@ void Usrp::detectChannels(){
  * error. After setting RF parameters, allows for a setup time
  * to ensure the parameters are applied correctly.
 */
-
-void Usrp::setRFParams(){
+void HiSnrUsrp::setRFParams(){
  // set the RF parameters based on 1 or 2 channel operation
    if (tx_channel_nums.size() == 1) {
-    set_rf_params_single(usrp, getRf0(), rx_channel_nums, tx_channel_nums);
+    set_rf_params_single(usrp, rf0, rx_channel_nums, tx_channel_nums);
   } else if (tx_channel_nums.size() == 2) {
-    if (!getTransmit()) {
+    if (!transmit) {
       throw std::runtime_error("Non-transmit mode not supported by set_rf_params_multi");
     }
-    set_rf_params_multi(usrp, getRf0(), getRf1(), rx_channel_nums, tx_channel_nums);
+    set_rf_params_multi(usrp, rf0, rf1, rx_channel_nums, tx_channel_nums);
   } else {
     throw std::runtime_error("Number of channels requested not supported");
   }
@@ -264,11 +255,10 @@ void Usrp::setRFParams(){
  * it retrieves the lock status and asserts that it is true. If the lock is not
  * established, it throws an assertion error.
 */
-
-void Usrp::refLoLockDetect(){
+void HiSnrUsrp::refLoLockDetect(){
  // Check Ref and LO Lock detect
   vector<std::string> tx_sensor_names, rx_sensor_names;
-  if (getTransmit()) {
+  if (transmit) {
     for (size_t ch = 0; ch < tx_channel_nums.size(); ch++) {
       // Check LO locked
       tx_sensor_names = usrp->get_tx_sensor_names(ch);
@@ -303,7 +293,7 @@ void Usrp::refLoLockDetect(){
  * disables the reference output. If the value is not specified, it does nothing.
 */
 
-void Usrp::setupGpio(){
+void HiSnrUsrp::setupGpio(){
   cout << "Available GPIO banks: " << std::endl;
   auto banks = usrp->get_gpio_banks(0);
   for (auto& bank : banks) {
@@ -341,13 +331,13 @@ void Usrp::setupGpio(){
  * retrieves the transmit stream from the USRP device and prints maximum
  * number of samples that can be sent in a single call.
 */
-void Usrp::setupTx(){
+void HiSnrUsrp::setupTx(){
   // Stream formats
-  stream_args_t tx_stream_args(getCpuFormat(), getOtwFormat());
+  stream_args_t tx_stream_args(cpu_format, otw_format);
   tx_stream_args.channels = tx_channel_nums;
 
   // tx streamer
-  if (getTransmit()) {
+  if (transmit) {
     tx_stream = usrp->get_tx_stream(tx_stream_args);
     cout << "INFO: tx_stream get_max_num_samps: " << tx_stream->get_max_num_samps() << endl;
   }
@@ -360,8 +350,8 @@ void Usrp::setupTx(){
  * from the USRP device and prints maximum number of samples that can be
  * received in a single call.
  */
-void Usrp::setupRx(){
-   stream_args_t rx_stream_args(getCpuFormat(), getOtwFormat());
+void HiSnrUsrp::setupRx(){
+   stream_args_t rx_stream_args(cpu_format, otw_format);
 
   // rx streamer
   rx_stream_args.channels = rx_channel_nums;
@@ -370,23 +360,43 @@ void Usrp::setupRx(){
   cout << "INFO: rx_stream get_max_num_samps: " << rx_stream->get_max_num_samps() << endl;
 }
 
-// DEVICE
-double Usrp::getTime() const { return time_spec_t(getUsrp()->get_time_now()).get_real_secs(); }
+// // DEVICE
+// string HiSnrUsrp::getDeviceArgs() const {return device_args;}
+// string HiSnrUsrp::getSubdev() const {return subdev;}
+// string HiSnrUsrp::getClkRef() const {return clk_ref;}
+// double HiSnrUsrp::getClkRate() const {return clk_rate;}
+// string HiSnrUsrp::getTxChannels() const {return tx_channels;}
+// string HiSnrUsrp::getRxChannels() const {return rx_channels;}
+// string HiSnrUsrp::getCpuFormat() const {return cpu_format;}
+// string HiSnrUsrp::getOtwFormat() const {return otw_format;}
 
 // GPIO
-int Usrp::getPwrAmpPin() const {return pwr_amp_pin;}
-string Usrp::getGpioBank() const {return gpio_bank;}
-uint32_t Usrp::getAmpGpioMask() const {return AMP_GPIO_MASK;}
-uint32_t Usrp::getAtrMasks() const {return ATR_MASKS;}
-uint32_t Usrp::getAtrControl() const {return ATR_CONTROL;}
-uint32_t Usrp::getGpioDdr() const {return GPIO_DDR;}
-int Usrp::getRefOutInt() const {return ref_out_int;}
+int HiSnrUsrp::getPwrAmpPin() const {return pwr_amp_pin;}
+string HiSnrUsrp::getGpioBank() const {return gpio_bank;}
+uint32_t HiSnrUsrp::getAmpGpioMask() const {return AMP_GPIO_MASK;}
+uint32_t HiSnrUsrp::getAtrMasks() const {return ATR_MASKS;}
+uint32_t HiSnrUsrp::getAtrControl() const {return ATR_CONTROL;}
+uint32_t HiSnrUsrp::getGpioDdr() const {return GPIO_DDR;}
+int HiSnrUsrp::getRefOutInt() const {return ref_out_int;}
+
+// // RF
+// YAML::Node HiSnrUsrp::getRf0() const {return rf0;}
+// YAML::Node HiSnrUsrp::getRf1() const {return rf1;}
+// double HiSnrUsrp::getRxRate() const {return rx_rate;}
+// double HiSnrUsrp::getTxRate() const {return tx_rate;}
+// double HiSnrUsrp::getFreq() const {return freq;}
+// double HiSnrUsrp::getRxGain() const {return rx_gain;}
+// double HiSnrUsrp::getTxGain() const {return tx_gain;}
+// double HiSnrUsrp::getBw() const {return bw;}
+// string HiSnrUsrp::getRxAnt() const {return rx_ant;}
+// string HiSnrUsrp::getTxAnt() const {return tx_ant;}
+// bool HiSnrUsrp::getTransmit() const {return transmit;}
 
 // USRP
-usrp::multi_usrp::sptr Usrp::getUsrp() const {return usrp;}
-tx_streamer::sptr Usrp::getTxStream() const {return tx_stream;}
-rx_streamer::sptr Usrp::getRxStream() const {return rx_stream;}
-vector<string>& Usrp::getTxChannelStrings() {return tx_channel_strings;}
-vector<size_t>& Usrp::getTxChannelNums() {return tx_channel_nums;}
-vector<string>& Usrp::getRxChannelStrings() {return rx_channel_strings;}
-vector<size_t>& Usrp::getRxChannelNums() {return rx_channel_nums;}
+usrp::multi_usrp::sptr HiSnrUsrp::getUsrp() const {return usrp;}
+tx_streamer::sptr HiSnrUsrp::getTxStream() const {return tx_stream;}
+rx_streamer::sptr HiSnrUsrp::getRxStream() const {return rx_stream;}
+vector<string>& HiSnrUsrp::getTxChannelStrings() {return tx_channel_strings;}
+vector<size_t>& HiSnrUsrp::getTxChannelNums() {return tx_channel_nums;}
+vector<string>& HiSnrUsrp::getRxChannelStrings() {return rx_channel_strings;}
+vector<size_t>& HiSnrUsrp::getRxChannelNums() {return rx_channel_nums;}

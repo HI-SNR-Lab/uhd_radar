@@ -1,15 +1,5 @@
 #include "sdr.hpp"
 
-using namespace RadioDeclaration;
-
-/**
-* @brief Throws error: it should be impossible to construct
-*         an Sdr object without a parameter
-*/
-Sdr::Sdr() {
-  cout << "Error: Impossible to construct Sdr without *.yaml file" << endl;
-}
-
 /**
 * @brief Constructs a new Sdr object
 *
@@ -93,60 +83,61 @@ void Sdr::loadConfigFromYaml(const string& kYamlFile) {
 }
 
 /**
-* @brief Initializes the USRP device setting time and clock source
+* @brief initializes an SDR device.
 *
-* Creates the USRP device using the specified device arguments
-* and sets the clock source to the specified reference clock.
-* It also locks the mboard clocks and sets the time source.
-* It ensures that the USRP device is ready for operation
+* Virtual function that will initialize an SDR. Because this is an
+*   abstract class, won't set anything up.
 *
 */
 void Sdr::createRadio(){
-  std::cout << boost::format("This is not a radio: specify radio in use") << endl;
+  cout << endl;
+  cout << boost::format("Creating an undefinied radio: %s...")
+    % device_args << endl;
 }
 
 /**
-* @brief sets up the USRP device
+* @brief sets up the SDR
 *
-* Initializes the USRP device with the specified parameters, sets the subdevice
-* specifications, master clock rate, and configures the RF parameters. checks
-* reference and LO locks, and initializes GPIO, transmit, and receive settings.
-*
+* Virtual function for the abstract class SDR; will be used to initialize
+*   GPIO pins, Rx and Tx streams, and clocks on an actual SDR.
 */
 void Sdr::setupRadio(){
-  std::cout << boost::format("This is not a radio: specify radio in use") << endl;
+  cout << endl;
+  cout << boost::format("Setting up up an undefinied radio") << endl;
 }
 
 
-void Sdr::setRFParams(){
- std::cout << boost::format("This is not a radio: specify radio in use") << endl;
-}
 
-/*** @brief Sets up the transmit stream for the USRP device
+/*** @brief Sets the RF parameters for the SDR
  * 
- * Initializes the transmit stream with the specified CPU and OTW formats,
- * and sets the number of channels for transmission. If transmission is enabled,
- * retrieves the transmit stream from the USRP device and prints maximum
- * number of samples that can be sent in a single call.
+ * Configures the RF parameters for given SDR device
+*/
+void Sdr::setRFParams(){
+  cout << endl;
+  cout << boost::format("Setting up RF parameters") << endl;
+}
+
+
+/*** @brief sets up a transmit for Sdr objects
+ * 
+ * Initializes the transmit stream depending on SDR in use
 */
 void Sdr::setupTx(){
-  std::cout << boost::format("This is not a radio: specify radio in use") << endl;
+  cout << endl;
+  cout << boost::format("Transmitting Method for an undefinied radio") << endl;
 }
 
-/*** @brief Sets up the receive stream for the USRP device
+/*** @brief sets up a receiver for Sdr objects
  * 
- * Initializes the receive stream with the specified CPU and OTW formats,
- * and sets the number of channels for reception. Retrieves the receive stream
- * from the USRP device and prints maximum number of samples that can be
- * received in a single call.
+ * Initializes the receive stream depending on SDR in use
  */
 void Sdr::setupRx(){
-   std::cout << boost::format("This is not a radio: specify radio in use") << endl;
+  cout << endl;
+  cout << boost::format("Receiving Method for an undefinied radio") << endl;
 }
 
 // DEVICE
 string Sdr::getDeviceArgs() const {return device_args;}
-string Sdr::getType() const {return type;}
 string Sdr::getSubdev() const {return subdev;}
 string Sdr::getClkRef() const {return clk_ref;}
 double Sdr::getClkRate() const {return clk_rate;}
@@ -154,6 +145,15 @@ string Sdr::getTxChannels() const {return tx_channels;}
 string Sdr::getRxChannels() const {return rx_channels;}
 string Sdr::getCpuFormat() const {return cpu_format;}
 string Sdr::getOtwFormat() const {return otw_format;}
+
+// // GPIO
+// int Sdr::getPwrAmpPin() const {return pwr_amp_pin;}
+// string Sdr::getGpioBank() const {return gpio_bank;}
+// uint32_t Sdr::getAmpGpioMask() const {return AMP_GPIO_MASK;}
+// uint32_t Sdr::getAtrMasks() const {return ATR_MASKS;}
+// uint32_t Sdr::getAtrControl() const {return ATR_CONTROL;}
+// uint32_t Sdr::getGpioDdr() const {return GPIO_DDR;}
+// int Sdr::getRefOutInt() const {return ref_out_int;}
 
 // RF
 YAML::Node Sdr::getRf0() const {return rf0;}
@@ -168,3 +168,11 @@ string Sdr::getRxAnt() const {return rx_ant;}
 string Sdr::getTxAnt() const {return tx_ant;}
 bool Sdr::getTransmit() const {return transmit;}
 
+// // USRP
+// usrp::multi_usrp::sptr Sdr::getUsrp() const {return usrp;}
+// tx_streamer::sptr Sdr::getTxStream() const {return tx_stream;}
+// rx_streamer::sptr Sdr::getRxStream() const {return rx_stream;}
+// vector<string>& Sdr::getTxChannelStrings() {return tx_channel_strings;}
+// vector<size_t>& Sdr::getTxChannelNums() {return tx_channel_nums;}
+// vector<string>& Sdr::getRxChannelStrings() {return rx_channel_strings;}
+// vector<size_t>& Sdr::getRxChannelNums() {return rx_channel_nums;}

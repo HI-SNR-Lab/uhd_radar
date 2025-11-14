@@ -1,6 +1,6 @@
 # This is an example of a YAML configuration file used to set parameters for the
 # ORCA system.
-# This configuration file is meant for the Ettus USRP B205mini-i. 
+# This configuration file is meant for the Ettus USRP B205mini-i.
 
 ### CHIRP AND PULSE PARAMETERS
 GENERATE:
@@ -36,7 +36,6 @@ DEVICE:
     # Advanced config: https://files.ettus.com/manual/page_configuration.html
     # Transport parameters: https://files.ettus.com/manual/page_transport.html
     device_args: "num_recv_frames=700,num_send_frames=700,recv_frame_size=11000,send_frame_size=11000"
-    
     subdev: "A:A"                        # Active SDR submodules
                                          #   See https://files.ettus.com/manual/page_configuration.html
     clk_ref: "internal"                  # Clock reference source
@@ -118,14 +117,6 @@ CHIRP:
     phase_dithering: true                # Enable phase dithering
 ### DURING-RECORDING FILE LOCATIONS
 FILES:
-
-    type: "b200"                        # Type of SDR used (called prior to device instantiation)
-                                        #   Options: usrp2 (USRP N200, USRP N210)
-                                        #            b200  (USRP B200, USRP B210)
-                                        #            e3x0  (USRP E310)
-                                        #            octoclock (OctoClock)
-                                        #   See https://manpages.ubuntu.com/manpages/jammy/man1/uhd_image_loader.1.html
-
     chirp_loc: *ch_sent                  # Chirp file to transmit
     output_dir: "data"                   # Directory to save output files to
     save_loc: &save_loc "rx_samps.bin"   # (Temporary) location to write

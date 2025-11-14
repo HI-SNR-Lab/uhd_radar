@@ -14,6 +14,7 @@ set(CMAKE_INCLUDE_PATH "$ENV{CONDA_PREFIX}/include")
 
 ### Configure Compiler ########################################################
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     set(CMAKE_EXE_LINKER_FLAGS "-lthr ${CMAKE_EXE_LINKER_FLAGS}")
@@ -66,7 +67,14 @@ FetchContent_MakeAvailable(googletest)
 
 ### Make the executables #######################################################
 # Radar executable
-add_executable(radar main.cpp rf_settings.cpp rf_settings.hpp utils.cpp utils.hpp pseudorandom_phase.cpp pseudorandom_phase.hpp chirp.hpp chirp.cpp sdr.cpp sdr.hpp common.hpp)
+add_executable(radar main.cpp 
+                usrp_rf_settings.cpp usrp_rf_settings.hpp 
+                utils.cpp utils.hpp 
+                pseudorandom_phase.cpp pseudorandom_phase.hpp 
+                chirp.hpp chirp.cpp 
+                sdr.cpp sdr.hpp 
+                hisnr_usrp.cpp hisnr_usrp.hpp
+                common.hpp)
 # Psuedorandom phase noise generation for post-processing
 add_executable(pseudorandom_phase_codes_to_file pseudorandom_phase_to_file.cpp pseudorandom_phase.cpp pseudorandom_phase.hpp common.hpp)
 

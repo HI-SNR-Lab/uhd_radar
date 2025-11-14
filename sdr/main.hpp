@@ -20,9 +20,10 @@
 #include <boost/asio/write.hpp>
 
 #include "yaml-cpp/yaml.h"
-#include "rf_settings.hpp"
+#include "usrp_rf_settings.hpp"
 #include "pseudorandom_phase.hpp"
 #include "utils.hpp"
+#include "sdr.hpp"
 #include "hisnr_usrp.hpp"
 #include "chirp.hpp"
 #include "common.hpp"
