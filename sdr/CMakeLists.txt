@@ -5,7 +5,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-cmake_minimum_required(VERSION 3.5.1)
+# Recent update to CMAKE (3.30) that changes how FindBoost library is linked
+    # for more details about changes made, run cmake --help CMP0167
+cmake_minimum_required(VERSION 3.30)
+
+# # for debugging purposes
+# set(CMAKE_FIND_DEBUG_MODE ON)
+# set(CMAKE_FIND_PACKAGE_TRACE ON)
+
 project(INIT_USRP CXX)
 
 message(STATUS "conda prefix: $ENV{CONDA_PREFIX}")
@@ -14,7 +21,6 @@ set(CMAKE_INCLUDE_PATH "$ENV{CONDA_PREFIX}/include")
 
 ### Configure Compiler ########################################################
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     set(CMAKE_EXE_LINKER_FLAGS "-lthr ${CMAKE_EXE_LINKER_FLAGS}")
@@ -31,10 +37,13 @@ option(UHD_USE_STATIC_LIBS OFF)
 
 # To add UHD as a dependency to this project, add a line such as this:
 find_package(UHD 3.15.0 REQUIRED)
-find_package(yaml-cpp REQUIRED)
-# The version in  ^^^^^  here is a minimum version.
 # To specify an exact version:
 #find_package(UHD 4.0.0 EXACT REQUIRED)
+
+find_package(yaml-cpp CONFIG REQUIRED)
+
+find_package(pybind11 REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 # This example also requires Boost.
 # Set components here, then include UHDBoost to do the actual finding
@@ -48,11 +57,15 @@ set(UHD_BOOST_REQUIRED_COMPONENTS
 set(BOOST_MIN_VERSION 1.58)
 include(UHDBoost)
 
+message("THE PYTHON LIBRARY YOU'RE LINKING IS ${pybind11_INCLUDE_DIRS}")
+
 # need these include and link directories for the build
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${UHD_INCLUDE_DIRS}
     ${YAML_CPP_INCLUDE_DIR}
+    ${pybind11_INCLUDE_DIRS}
+    ${Python3_INCLUDE_DIRS}
 )
 link_directories(${Boost_LIBRARY_DIRS})
 
@@ -67,14 +80,7 @@ FetchContent_MakeAvailable(googletest)
 
 ### Make the executables #######################################################
 # Radar executable
-add_executable(radar main.cpp 
-                usrp_rf_settings.cpp usrp_rf_settings.hpp 
-                utils.cpp utils.hpp 
-                pseudorandom_phase.cpp pseudorandom_phase.hpp 
-                chirp.hpp chirp.cpp 
-                sdr.cpp sdr.hpp 
-                hisnr_usrp.cpp hisnr_usrp.hpp
-                common.hpp)
+add_executable(radar main.cpp hisnr_usrp.cpp hisnr_usrp.hpp hisnr_rfsoc42.cpp hisnr_rfsoc42.hpp usrp_rf_settings.cpp usrp_rf_settings.hpp utils.cpp utils.hpp pseudorandom_phase.cpp pseudorandom_phase.hpp chirp.hpp chirp.cpp sdr.cpp sdr.hpp common.hpp)
 # Psuedorandom phase noise generation for post-processing
 add_executable(pseudorandom_phase_codes_to_file pseudorandom_phase_to_file.cpp pseudorandom_phase.cpp pseudorandom_phase.hpp common.hpp)
 
@@ -87,15 +93,17 @@ set(CMAKE_BUILD_TYPE "Release")
 # anything else we need (in this case, some Boost libraries):
 if(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against shared UHD library.")
-    target_link_libraries(radar ${UHD_LIBRARIES} ${Boost_LIBRARIES} ${YAML_CPP_LIBRARIES})
+    target_link_libraries(radar ${UHD_LIBRARIES} ${Boost_LIBRARIES} ${pybind11_LIBRARIES} ${Python3_LIBRARIES} yaml-cpp::yaml-cpp)
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
 else(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against static UHD library.")
     target_link_libraries(radar
+
         # We could use ${UHD_LIBRARIES}, but linking requires some extra flags,
         # so we use this convenience variable provided to us
         ${UHD_STATIC_LIB_LINK_FLAG}
+
         # Also, when linking statically, we need to pull in all the deps for
         # UHD as well, because the dependencies don't get resolved automatically
         ${UHD_STATIC_LIB_DEPS}

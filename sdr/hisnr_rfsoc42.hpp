@@ -2,9 +2,11 @@
 #define HISNR_RFSOC42_HPP
 
 #include "yaml-cpp/yaml.h"
-#include "usrp_rf_settings.hpp"
 #include "common.hpp"
 #include "sdr.hpp"
+#include "pybind11/pybind11.h"
+
+namespace py = pybind11;
 
 class HiSnrRFSoC42 : public Sdr {
 
@@ -15,6 +17,11 @@ class HiSnrRFSoC42 : public Sdr {
     void createRadio() override;
     void setupRadio() override;
 
+    //RFSoC4x2
+    py::module_ getBaseOverlay() const;
+    py::object getRadio() const;
+    py::object getRFSoC() const;
+
   private:
     friend class SdrHwTest;
     void loadConfigFromYamlRFSoC(const string& kYamlFile);
@@ -24,6 +31,11 @@ class HiSnrRFSoC42 : public Sdr {
     void setupRx() override;
     void storeTxChannel(size_t ch);
     void storeRxChannel(size_t ch);
+
+
+    py::module_ base_overlay;
+    py::object base;
+    py::object radio;
 
 };
 

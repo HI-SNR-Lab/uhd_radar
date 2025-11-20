@@ -1,5 +1,7 @@
 #include "hisnr_rfsoc42.hpp"
 
+namespace py = pybind11;
+
 /**
 * @brief Constructs a new HiSnrRFSoC42 object
 *
@@ -9,6 +11,12 @@
 * @param kYamlFile Path to the YAML configuration file (config/)
 */
 HiSnrRFSoC42::HiSnrRFSoC42(const string& kYamlFile) : Sdr(kYamlFile) {
+  
+  py::module_ overlays = py::module_::import("pynq.overlays.base");
+  base_overlay = overlays.attr("BaseOverlay");
+  base = base_overlay("base.bit");
+  radio = base.attr("radio"); // equivalent of pynq's base.radio
+
   loadConfigFromYamlRFSoC(kYamlFile);
 }
 
@@ -35,7 +43,15 @@ void HiSnrRFSoC42::loadConfigFromYamlRFSoC(const string& kYamlFile) {
 *
 */
 void HiSnrRFSoC42::createRadio(){
+  py::object b = getRFSoC(); // base
+  py::object r = getRadio(); // base.radio
+  b.attr("init_rf_clks"); // initializes the RF Clocks on the board
 
+  py::module_ builtins = py::module_::import("builtins");
+  cout << boost::format("Radio Wrapper Info: %s") % string(py::str(builtins.attr("help")(r))) << endl;
+  py::object receiver = r.attr("receiver"); // pynq.base.radio.receiver
+  py::object getchanneldescription = receiver.attr("get_channel_description");
+  cout << boost::format("Radio Channel Information: %s") % string(py::str(getchanneldescription)) << endl;
 }
 
 /**
@@ -91,3 +107,7 @@ void HiSnrRFSoC42::setupTx(){
 void HiSnrRFSoC42::setupRx(){
 }
 
+//RFSoC
+py::module_ HiSnrRFSoC42::getBaseOverlay() const {return base_overlay;}
+py::object HiSnrRFSoC42::getRadio() const {return radio;}
+py::object HiSnrRFSoC42::getRFSoC() const {return base;}
