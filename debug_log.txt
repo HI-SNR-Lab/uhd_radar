@@ -1,5 +1,3 @@
 THE PYTHON LIBRARY YOU'RE LINKING IS /opt/anaconda3/envs/environment/include;/opt/anaconda3/envs/environment/include/python3.11
-I made it this far
-Not a problem with original Lists
 Errors while running CTest
 make: *** [hardware-cxx-test] Error 8

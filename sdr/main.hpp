@@ -25,8 +25,16 @@
 #include "utils.hpp"
 #include "sdr.hpp"
 #include "hisnr_usrp.hpp"
+#include "hisnr_rfsoc42.hpp"
 #include "chirp.hpp"
 #include "common.hpp"
+
+int _usrp_main(YAML::Node config, string yaml_filename);
+int _rfsoc42_main(YAML::Node config, string yaml_filename);
+
+// Constants that are used to determine type of SDR
+extern const std::string RADIO_TYPE_B210 = "ettus_b2x0";
+extern const std::string RADIO_TYPE_RFSOC42 = "xilinx_rfsoc4x2";
 
 void transmit_worker(tx_streamer::sptr& tx_stream, rx_streamer::sptr& rx_stream, Chirp& chirp, Sdr& sdr);
 void handleRxBuffer(size_t n_samps_in_rx_buff, rx_metadata_t& rx_md, Chirp& chirp, vector<complex<float>>& buff, vector<complex<float>>& sample_sum, float& inversion_phase);

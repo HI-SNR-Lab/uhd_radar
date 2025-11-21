@@ -86,7 +86,6 @@ void HiSnrRFSoC42::setRFParams(){
   
 }
 
-
 /*** @brief Sets up the transmit stream for the RFSoC42 device
  * 
  * Initializes the transmit stream with the specified CPU and OTW formats,

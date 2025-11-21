@@ -185,31 +185,16 @@ void wrapUp(boost::asio::posix::stream_descriptor& gps_stream, ofstream& outfile
   cout << "[RX] transmit_thread.join_all() complete." << endl << endl;
 }
 
-/* 
- * UHD_SAFE_MAIN
- */
-int UHD_SAFE_MAIN(int argc, char *argv[]) {
-
-  /** Load YAML file **/
-
-  string yaml_filename;
-  if (argc >= 2) {
-    yaml_filename = "../../" + string(argv[1]);
-  } else {
-    yaml_filename = "../../config/default.yaml";
-  }
-  cout << "Reading from config file: " << yaml_filename << endl;
-
+int _usrp_main(YAML::Node config, string yaml_filename) {
   HiSnrUsrp sdr(yaml_filename);
-
   Chirp chirp(yaml_filename);
-  YAML::Node config = YAML::LoadFile(yaml_filename);
+
   sdr.createRadio();
   sdr.setupRadio();
 
-  //YAML::Node rf0 = config["RF0"];
- // YAML::Node rf1 = config["RF1"];
 
+  YAML::Node rf0 = config["RF0"];
+  YAML::Node rf1 = config["RF1"];
   YAML::Node files = config["FILES"];
   chirp_loc = files["chirp_loc"].as<string>();
   output_dir = files["output_dir"].as<string>();
@@ -217,25 +202,24 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
   gps_save_loc = files["gps_loc"].as<string>();
   chirp.setMaxChirpsPerFile(files["max_chirps_per_file"].as<int>());
 
+
   //Merge save_loc and gps_save_loc with output_dir
   save_loc = std::filesystem::path(output_dir).string() + "/" + save_loc;
   gps_save_loc = std::filesystem::path(output_dir).string() + "/" + gps_save_loc;
 
-  // Calculated parameters
 
+  // Calculated parameters
   tr_off_delay = chirp.getTxDuration() + chirp.getTrOffTrail(); // Time before turning off GPIO
   num_tx_samps = sdr.getTxRate() * chirp.getTxDuration(); // Total samples to transmit per chirp // TODO: Should use ["GENERATE"]["sample_rate"] instead!
   num_rx_samps = sdr.getRxRate() * chirp.getRxDuration(); // Total samples to receive per chirp // TODO: Should use ["GENERATE"]["sample_rate"] instead!
 
 
   /** Thread, interrupt setup **/
-
   set_thread_priority_safe(1.0, true);
-  
   signal(SIGINT, &sig_int_handler);
 
-  /*** VERSION INFO ***/
 
+  /*** VERSION INFO ***/
   // Note: This print statement is used by automated post-processing code. Please be careful about changing the format.
   cout << "[VERSION] 0.0.1" << endl; // Version numbers: First number:  Increment for major new versions
                                      //                  Second number: Increment for any changes that you expect to matter to post-processing
@@ -254,6 +238,7 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
   // update the offset time for start of streaming to be offset from the current usrp time
   chirp.setTimeOffset(chirp.getTimeOffset() + time_spec_t(sdr.getUsrp()->get_time_now()).get_real_secs());  //needs to be after chirp and sdr object are both made
 
+
   /*** SPAWN THE TX THREAD ***/
   boost::thread_group transmit_thread;
   transmit_thread.create_thread(boost::bind(&transmit_worker, sdr.getTxStream(), sdr.getRxStream(), boost::ref(chirp), boost::ref(sdr)));
@@ -266,7 +251,6 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
   /*** FILE WRITE SETUP ***/
   boost::asio::io_service ioservice;
-
   
   if (save_loc[0] != '/') {
     save_loc = "../../" + save_loc;
@@ -300,6 +284,7 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
     current_filename = current_filename + "." + to_string(save_file_index);
   }
 
+
   // Note: This print statement is used by automated post-processing code. Please be careful about changing the format.
   cout << "[OPEN FILE] " << current_filename << endl;
   outfile.open(current_filename, ofstream::binary);
@@ -308,6 +293,7 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
   if (chirp.getNumPulses() < 0) {
     cout << "num_pulses is < 0. Will continue to send chirps until stopped with Ctrl-C." << endl;
   }
+
 
   string gps_data;
 
@@ -320,7 +306,8 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
     exit(1);
   }
 
-  // receive buffer
+
+  //------- receive buffer --------//
   size_t bytes_per_sample = convert::get_bytes_per_item(sdr.getCpuFormat());
   vector<complex<float>> sample_sum(num_rx_samps, 0); // Sum error-free RX pulses into this vector
 
@@ -348,10 +335,10 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
 
     // get gps data
-    /*if (sdr.getClkRef() == "gpsdo" && ((pulses_received % 100000) == 0)) {
+    if (sdr.getClkRef() == "gpsdo" && ((pulses_received % 100000) == 0)) {
       gps_data = sdr.getUsrp()->get_mboard_sensor("gps_gprmc").to_pp_string();
       //cout << gps_data << endl;
-    }*/
+    }
 
     // check if someone wants to stop
     if (stop_signal_called) {
@@ -362,19 +349,49 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
     }
 
     // write gps string to file
-    /*if (sdr.getClkRef() == "gpsdo") {
+    if (sdr.getClkRef() == "gpsdo") {
       boost::asio::async_write(gps_stream, boost::asio::buffer(gps_data + "\n"), gps_asio_handler);
-    }*/
+    }
 
     // split output files based on number of chirps
     splitOutputFiles(chirp, outfile, current_filename, save_file_index);
     
-    // // clear the matrices holding the sums
-    // fill(sample_sum.begin(), sample_sum.end(), complex<int16_t>(0,0));
+    // clear the matrices holding the sums
+    fill(sample_sum.begin(), sample_sum.end(), complex<int16_t>(0,0));
   }
 
   /*** WRAP UP ***/
   wrapUp(gps_stream, outfile, current_filename, transmit_thread);
+
+  return EXIT_SUCCESS;
+}
+
+int _rfsoc42_main(YAML::Node config, string yaml_filename) {
+  return EXIT_SUCCESS;
+}
+
+/* 
+ * UHD_SAFE_MAIN
+ */
+int UHD_SAFE_MAIN(int argc, char *argv[]) {
+
+  /** Load YAML file **/
+  string yaml_filename;
+  if (argc >= 2) {
+    yaml_filename = "../../" + string(argv[1]);
+  } else {
+    yaml_filename = "../../config/default.yaml";
+  }
+  cout << "Reading from config file: " << yaml_filename << endl;
+
+  YAML::Node config = YAML::LoadFile(yaml_filename);
+  if (config["radio_type"].as<string>() == RADIO_TYPE_B210) {
+    _usrp_main(config, yaml_filename);
+  } else if (config["radio_type"].as<string>() == RADIO_TYPE_RFSOC42) {
+    _rfsoc42_main(config, yaml_filename);
+  } else {
+    throw std::runtime_error("Radio Type in configuration yaml file is invalid");
+  }
 
   return EXIT_SUCCESS;
   
