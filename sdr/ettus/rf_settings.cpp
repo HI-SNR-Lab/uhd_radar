@@ -3,7 +3,7 @@
 #include <uhd/usrp/multi_usrp.hpp>
 #include <thread>
 #include "yaml-cpp/yaml.h"
-#include "usrp_rf_settings.hpp"
+#include "rf_settings.hpp"
 
 using namespace std;
 using namespace uhd;

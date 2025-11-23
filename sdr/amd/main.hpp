@@ -1,3 +1,6 @@
+#ifndef MAIN_RFSOC42_SETTINGS_HPP
+#define MAIN_RFSOC42_SETTINGS_HPP
+
 #pragma once
 
 #include <boost/program_options.hpp>
@@ -22,13 +25,8 @@
 #include "chirp.hpp"
 #include "common.hpp"
 
-
-// Constants that are used to determine type of SDR
-extern const std::string RADIO_TYPE_B210 = "uhd";
-extern const std::string RADIO_TYPE_RFSOC42 = "pynq";
-
-void transmit_worker(tx_streamer::sptr& tx_stream, rx_streamer::sptr& rx_stream, Chirp& chirp, Sdr& sdr);
-void handleRxBuffer(size_t n_samps_in_rx_buff, rx_metadata_t& rx_md, Chirp& chirp, vector<complex<float>>& buff, vector<complex<float>>& sample_sum, float& inversion_phase);
 bool checkForFullSampleSum(Chirp& chirp, vector<complex<float>>& sample_sum, ofstream& outfile);
 void splitOutputFiles(Chirp& chirp, ofstream& outfile, string& current_filename, int& save_file_index);
 void wrapUp(boost::asio::posix::stream_descriptor& gps_stream, ofstream& outfile, string& current_filename, boost::thread_group& transmit_thread);
+
+#endif

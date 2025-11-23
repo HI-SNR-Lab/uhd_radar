@@ -2,9 +2,9 @@
 #define HISNR_USRP_HPP
 
 #include "yaml-cpp/yaml.h"
-#include "usrp_rf_settings.hpp"
-#include "common.hpp"
-#include "sdr.hpp"
+#include "rf_settings.hpp"
+#include "../common.hpp"
+#include "../sdr.hpp"
 
 class HiSnrUsrp : public Sdr {
 

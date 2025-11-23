@@ -1,3 +1,46 @@
-THE PYTHON LIBRARY YOU'RE LINKING IS /opt/anaconda3/envs/environment/include;/opt/anaconda3/envs/environment/include/python3.11
+check 1
+check 2
+check 3
+check 4
+CMake Warning (dev) at /opt/anaconda3/envs/environment/share/cmake/pybind11/FindPythonLibsNew.cmake:101 (message):
+  Policy CMP0148 is not set: The FindPythonInterp and FindPythonLibs modules
+  are removed.  Run "cmake --help-policy CMP0148" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning, or
+  preferably upgrade to using FindPython, either by calling it explicitly
+  before pybind11, or by setting PYBIND11_FINDPYTHON ON before pybind11.
+Call Stack (most recent call first):
+  /opt/anaconda3/envs/environment/share/cmake/pybind11/pybind11Tools.cmake:44 (find_package)
+  /opt/anaconda3/envs/environment/share/cmake/pybind11/pybind11Common.cmake:226 (include)
+  /opt/anaconda3/envs/environment/share/cmake/pybind11/pybind11Config.cmake:257 (include)
+  CMakeLists.txt:49 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+check 5
+check 6
+check 7
+check 8
+CMake Warning (dev) at /opt/anaconda3/envs/environment/lib/cmake/uhd/UHDBoost.cmake:190 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  CMakeLists.txt:66 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+check 9
+check 10
+check 12
+check 13
+check 14
+check 15
+CMake Warning (dev) at /Users/zowo4540/Desktop/Codes/Github/orca/tests/CMakeLists.txt:1 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+check 16
 Errors while running CTest
 make: *** [hardware-cxx-test] Error 8
