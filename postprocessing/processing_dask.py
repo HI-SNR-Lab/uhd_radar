@@ -144,7 +144,7 @@ def save_radar_data_to_zarr(prefix, skip_if_cached=True, zarr_base_location=None
             gpsdlog = gpsd_f.read()
     else:
         print("No GPS log file found!!")
-        gpsdlog = ""
+        gpsdlog = None
         #if log_required:
         #    raise FileNotFoundError(
         #        f"Log file not found: {log_file}. If a log file is not required, set log_required=False")
