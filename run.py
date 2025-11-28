@@ -125,6 +125,8 @@ class RadarProcessRunner():
         if not self.setup_complete:
             raise Exception("Must call setup() before calling run(). If setup() does not complete successfully, you cannot call run().")
         
+        self.gpspipe_process = subprocess.Popen(["/usr/bin/gpspipe", "--json", "-uu", "--output", "gpspipe_stdout.log"])
+        time.sleep(5)
         self.uhd_process = subprocess.Popen(["./radar", self.yaml_filename], stdout=subprocess.PIPE, bufsize=1, close_fds=True, text=True, cwd="sdr/build")
         self.uhd_output_reader_thread = threading.Thread(target=self.process_usrp_output, args=(self.uhd_process.stdout, open('uhd_stdout.log', 'w'), self.output_to_stdout))
         self.uhd_output_reader_thread.daemon = True # thread dies with the program
@@ -163,6 +165,8 @@ class RadarProcessRunner():
             was_force_killed = True
         self.is_running = False
 
+        self.gpspipe_process.kill()
+
         self.uhd_output_reader_thread.join()
 
         # If necessary, concatenate data files into a single file
@@ -174,7 +178,8 @@ class RadarProcessRunner():
 
         # Save output
         print("Copying data files...")
-        file_prefix = save_data(self.yaml_filename, alternative_rx_samps_loc=alternative_rx_samps_loc, num_files=self.file_queue_size, extra_files={"uhd_stdout.log": "uhd_stdout.log"})
+        file_prefix = save_data(self.yaml_filename, alternative_rx_samps_loc=alternative_rx_samps_loc, num_files=self.file_queue_size,
+                                extra_files={"uhd_stdout.log": "uhd_stdout.log", "gpspipe_stdout.log": "gpspipe_stdout.log"})
         print("Finished copying data.")
 
         self.output_file = None
