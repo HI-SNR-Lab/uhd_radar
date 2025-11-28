@@ -127,6 +127,7 @@ class RadarProcessRunner():
         
         self.gpspipe_process = subprocess.Popen(["/usr/bin/gpspipe", "--json", "-uu", "--output", "gpspipe_stdout.log"])
         self.gpsrinex_process = subprocess.Popen(["/usr/bin/gpsrinex", "-i", "1", "-f", "gpsrinex.obs"])
+        self.gpxlogger_process = subprocess.Popen(["/usr/bin/gpxlogger", "--reconnect", "-m2", "-f", "track.gpx", "-e", "sockets"])
         time.sleep(5)
         self.uhd_process = subprocess.Popen(["./radar", self.yaml_filename], stdout=subprocess.PIPE, bufsize=1, close_fds=True, text=True, cwd="sdr/build")
         self.uhd_output_reader_thread = threading.Thread(target=self.process_usrp_output, args=(self.uhd_process.stdout, open('uhd_stdout.log', 'w'), self.output_to_stdout))
@@ -168,6 +169,7 @@ class RadarProcessRunner():
 
         self.gpspipe_process.kill()
         self.gpsrinex_process.kill()
+        self.gpxlogger_process.kill()
 
         self.uhd_output_reader_thread.join()
 
@@ -183,7 +185,8 @@ class RadarProcessRunner():
         file_prefix = save_data(self.yaml_filename, alternative_rx_samps_loc=alternative_rx_samps_loc, num_files=self.file_queue_size,
                                 extra_files={"uhd_stdout.log": "uhd_stdout.log",
                                              "gpspipe_stdout.log": "gpspipe_stdout.log",
-                                             "gpsrinex.obs": "gpsrinex.obs"
+                                             "gpsrinex.obs": "gpsrinex.obs",
+                                             "track.gpx": "track.gpx"
                                              })
         print("Finished copying data.")
 
