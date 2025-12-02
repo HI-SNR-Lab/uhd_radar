@@ -1,5 +1,6 @@
 find_package(Boost REQUIRED COMPONENTS filesystem)
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(UHD REQUIRED)
 
 add_executable(test_utils
     sdr/test_utils.cpp

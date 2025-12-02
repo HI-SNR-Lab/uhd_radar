@@ -2,33 +2,19 @@ OUTDIR ?= ettus
 
 .PHONY: software-test
 .PHONY: hardware-test
-software-uhd-test: build-uhd-cxx software-uhd-cxx-test python-test
-software-pynq-test: build-pynq-cxx software-pynq-cxx-test python-test
-hardware-uhd-test: build-uhd-cxx hardware-uhd-cxx-test
-hardware-pynq-test: build-pynq-cxx hardware-pynq-cxx-test
+software-test: build-cxx software-cxx-test python-test
+hardware-test: build-cxx hardware-cxx-test
 
 .PHONY: build-cxx
-build-uhd-cxx:
+build-cxx:
 	@echo "Building C++ project..."
-	cmake -S sdr -B sdr/ettus/build -DRADAR_MODE="uhd"
-	cmake --build sdr/ettus/build
-
-build-pynq-cxx:
-	@echo "Building C++ project..."
-	cmake -S sdr -B sdr/amd/build -DRADAR_MODE="pynq"
-	cmake --build sdr/amd/build
-
+	cmake -S sdr -B sdr/build
+	cmake --build sdr/build
 
 .PHONY: software-cxx-test
-software-uhd-cxx-test:
+software-cxx-test:
 	@echo "Running C++ software tests..."
-	ctest --test-dir sdr/ettus/build --output-on-failure -E "gpsLock|check10MhzLock|checkAndSetTime|detectChannels|setRFParams|refLoLockDetect|setupGpio"
-
-.PHONY: software-cxx-test
-software-pynq-cxx-test:
-	@echo "Running C++ software tests..."
-	ctest --test-dir sdr/amd/build --output-on-failure -E "gpsLock|check10MhzLock|checkAndSetTime|detectChannels|setRFParams|refLoLockDetect|setupGpio"
-
+	ctest --test-dir sdr/build --output-on-failure -E "gpsLock|check10MhzLock|checkAndSetTime|detectChannels|setRFParams|refLoLockDetect|setupGpio"
 
 .PHONY: python-test
 python-test:
@@ -36,13 +22,7 @@ python-test:
 	conda run -n uhd pytest tests/
 
 
-.PHONY: hardware-uhd-cxx-test
-hardware-uhd-cxx-test:
-	@echo "Running C++ Usrp hardware tests.."
-	ctest --test-dir sdr/ettus/build --output-on-failure
-
-
-.PHONY: hardware-pynq-cxx-test
-hardware-pynq-cxx-test:
-	@echo "Running C++ Pynq hardware tests.."
-	ctest --test-dir sdr/amd/build --output-on-failure
+.PHONY: hardware-cxx-test
+hardware-cxx-test:
+	@echo "Running C++ hardware tests.."
+	ctest --test-dir sdr/build --output-on-failure

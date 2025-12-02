@@ -145,7 +145,15 @@ string Sdr::getTxChannels() const {return tx_channels;}
 string Sdr::getRxChannels() const {return rx_channels;}
 string Sdr::getCpuFormat() const {return cpu_format;}
 string Sdr::getOtwFormat() const {return otw_format;}
-string Sdr::getRadioType() const {return radio_type;}
+
+// // GPIO
+// int Sdr::getPwrAmpPin() const {return pwr_amp_pin;}
+// string Sdr::getGpioBank() const {return gpio_bank;}
+// uint32_t Sdr::getAmpGpioMask() const {return AMP_GPIO_MASK;}
+// uint32_t Sdr::getAtrMasks() const {return ATR_MASKS;}
+// uint32_t Sdr::getAtrControl() const {return ATR_CONTROL;}
+// uint32_t Sdr::getGpioDdr() const {return GPIO_DDR;}
+// int Sdr::getRefOutInt() const {return ref_out_int;}
 
 // RF
 YAML::Node Sdr::getRf0() const {return rf0;}

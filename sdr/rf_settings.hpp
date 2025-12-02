@@ -3,7 +3,7 @@
 #ifndef RF_SETTINGS_HPP
 #define RF_SETTINGS_HPP
 
-#include "common.hpp"
+#include "../common.hpp"
 #include "yaml-cpp/yaml.h"
 #include <uhd/usrp/multi_usrp.hpp>
 

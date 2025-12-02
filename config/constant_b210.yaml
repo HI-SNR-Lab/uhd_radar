@@ -117,7 +117,6 @@ CHIRP:
     phase_dithering: true                # Enable phase dithering
 ### DURING-RECORDING FILE LOCATIONS
 FILES:
-    radio_type: "ettus_b2x0"             # Type of radio being used
     chirp_loc: *ch_sent                  # Chirp file to transmit
     output_dir: "data"                   # Directory to save output files to
     save_loc: &save_loc "rx_samps.bin"   # (Temporary) location to write

@@ -53,7 +53,6 @@ CHIRP:
     num_pulses: &num_pulses 1000       # No. of chirps to TX/RX - set to -1 to continuously transmit pulses until stopped
     num_presums: &num_presums 1         # No. of chirps to (coherently) presum onboard (must be at least 1)
 FILES:
-    radio_type: "ettus_b2x0"            # Type of radio being used
     chirp_loc: *ch_sent                 # Chirp to transmit
     output_dir: "data"                  # Directory to save output files to
     save_loc: &save_loc "rx_samps.bin"  # Save rx data here

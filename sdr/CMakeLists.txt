@@ -12,39 +12,36 @@ cmake_minimum_required(VERSION 3.30)
 # set(CMAKE_FIND_DEBUG_MODE ON)
 # set(CMAKE_FIND_PACKAGE_TRACE ON)
 
-message(STATUS "We got to here, since ${RADAR_MODE} is uhd")
+project(INIT_USRP CXX)
 
-# Recent update to CMAKE (3.30) that changes how FindBoost library is linked
-    # for more details about changes made, run cmake --help CMP0167
-cmake_minimum_required(VERSION 3.5.1)
-option(RADAR_MODE "What type of software is your board using (uhd/pynq)?: ")
-message(STATUS "Building executable for a board running ${RADAR_MODE} software")
-# set(CMAKE_LIBRARY_PATH "$ENV{CONDA_PREFIX}/lib")
-# set(CMAKE_INCLUDE_PATH "$ENV{CONDA_PREFIX}/include")
+message(STATUS "conda prefix: $ENV{CONDA_PREFIX}")
+set(CMAKE_LIBRARY_PATH "$ENV{CONDA_PREFIX}/lib")
+set(CMAKE_INCLUDE_PATH "$ENV{CONDA_PREFIX}/include")
 
-####------------ MAKING UHD-BASED RADAR ------------####
+### Configure Compiler ########################################################
+set(CMAKE_CXX_STANDARD 17)
 
-if(RADAR_MODE STREQUAL "uhd") 
-
-    message(STATUS "We got to here, since ${RADAR_MODE} is uhd")
-    set(CMAKE_CXX_STANDARD 17)
-
-    if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-        set(CMAKE_EXE_LINKER_FLAGS "-lthr ${CMAKE_EXE_LINKER_FLAGS}")
-        set(CMAKE_CXX_FLAGS "-stdlib=libc++ ${CMAKE_CXX_FLAGS}")
-    endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    set(CMAKE_EXE_LINKER_FLAGS "-lthr ${CMAKE_EXE_LINKER_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-stdlib=libc++ ${CMAKE_CXX_FLAGS}")
+endif()
 
  # included due to error in compatability between Boost and UHD
 add_compile_options(-Wno-enum-constexpr-conversion)
 set(CMAKE_CXX_FLAGS "-Wno-psabi ${CMAKE_CXX_FLAGS}")
 
-    ### Set up build environment ##################################################
-    # Choose a static or shared-library build (shared is default, and static will probably need some special care!)
-    option(UHD_USE_STATIC_LIBS OFF) # Set this to ON in order to link a static build of UHD
+### Set up build environment ##################################################
+# Choose a static or shared-library build (shared is default, and static will
+# probably need some special care!)
+# Set this to ON in order to link a static build of UHD:
+option(UHD_USE_STATIC_LIBS OFF)
 
-    # Adds UHD and yaml-cpp as dependencies to this project
-    find_package(UHD 3.15.0 REQUIRED)
-    find_package(yaml-cpp CONFIG REQUIRED)
+# To add UHD as a dependency to this project, add a line such as this:
+find_package(UHD 3.15.0 REQUIRED)
+# To specify an exact version:
+#find_package(UHD 4.0.0 EXACT REQUIRED)
+
+find_package(yaml-cpp CONFIG REQUIRED)
 
 # find_package(pybind11 REQUIRED)
 # find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -72,14 +69,14 @@ include_directories(
 )
 link_directories(${Boost_LIBRARY_DIRS})
 
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-    )
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
 ### Make the executables #######################################################
 # Radar executable
@@ -103,8 +100,6 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/../tests ${CMAKE_BINARY_DIR}/tests)
 
 set(CMAKE_BUILD_TYPE "Release")
 
-if (RADAR_MODE STREQUAL "uhd")
-
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
 if(NOT UHD_USE_STATIC_LIBS)
@@ -122,20 +117,15 @@ else(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against static UHD library.")
     target_link_libraries(radar
 
-            # We could use ${UHD_LIBRARIES}, but linking requires some extra flags,
-            # so we use this convenience variable provided to us
-            ${UHD_STATIC_LIB_LINK_FLAG}
+        # We could use ${UHD_LIBRARIES}, but linking requires some extra flags,
+        # so we use this convenience variable provided to us
+        ${UHD_STATIC_LIB_LINK_FLAG}
 
-            # Also, when linking statically, we need to pull in all the deps for
-            # UHD as well, because the dependencies don't get resolved automatically
-            ${UHD_STATIC_LIB_DEPS}
-        )
-    endif(NOT UHD_USE_STATIC_LIBS)
-elseif (RADAR_MODE STREQUAL "pynq")
-    target_link_libraries(radar ${pybind11_LIBRARIES} ${Python3_LIBRARIES} yaml-cpp)
-else()
-    message(FATAL_ERROR "Unknown RADAR_MODE: must be 'uhd' or 'pynq'")
-endif()
+        # Also, when linking statically, we need to pull in all the deps for
+        # UHD as well, because the dependencies don't get resolved automatically
+        ${UHD_STATIC_LIB_DEPS}
+    )
+endif(NOT UHD_USE_STATIC_LIBS)
 
 ### Once it's built... ########################################################
 # Here, you would have commands to install your program.
