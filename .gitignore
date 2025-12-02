@@ -12,6 +12,11 @@ calibration/
 postprocessing/*.png
 *.tmp
 
+# No changes to PYNQ happens on this end
+
+boards/*
+docs/*
+
 # Python
 
 __pycache__/

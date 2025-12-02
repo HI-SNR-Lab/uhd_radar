@@ -185,6 +185,82 @@ void wrapUp(boost::asio::posix::stream_descriptor& gps_stream, ofstream& outfile
   cout << "[RX] transmit_thread.join_all() complete." << endl << endl;
 }
 
+/* 
+ * UHD_SAFE_MAIN
+ */
+int UHD_SAFE_MAIN(int argc, char *argv[]) {
+
+  /** Load YAML file **/
+
+  string yaml_filename;
+  if (argc >= 2) {
+    yaml_filename = "../" + string(argv[1]);
+  } else {
+    yaml_filename = "../config/default.yaml";
+  }
+  cout << "Reading from config file: " << yaml_filename << endl;
+
+  HiSnrUsrp sdr(yaml_filename);
+
+  Chirp chirp(yaml_filename);
+  YAML::Node config = YAML::LoadFile(yaml_filename);
+  sdr.createRadio();
+  sdr.setupRadio();
+
+  //YAML::Node rf0 = config["RF0"];
+ // YAML::Node rf1 = config["RF1"];
+
+  YAML::Node files = config["FILES"];
+  chirp_loc = files["chirp_loc"].as<string>();
+  output_dir = files["output_dir"].as<string>();
+  save_loc = files["save_loc"].as<string>();
+  gps_save_loc = files["gps_loc"].as<string>();
+  chirp.setMaxChirpsPerFile(files["max_chirps_per_file"].as<int>());
+
+  //Merge save_loc and gps_save_loc with output_dir
+  save_loc = std::filesystem::path(output_dir).string() + "/" + save_loc;
+  gps_save_loc = std::filesystem::path(output_dir).string() + "/" + gps_save_loc;
+
+  // Calculated parameters
+
+  tr_off_delay = chirp.getTxDuration() + chirp.getTrOffTrail(); // Time before turning off GPIO
+  num_tx_samps = sdr.getTxRate() * chirp.getTxDuration(); // Total samples to transmit per chirp // TODO: Should use ["GENERATE"]["sample_rate"] instead!
+  num_rx_samps = sdr.getRxRate() * chirp.getRxDuration(); // Total samples to receive per chirp // TODO: Should use ["GENERATE"]["sample_rate"] instead!
+
+
+  /** Thread, interrupt setup **/
+
+  set_thread_priority_safe(1.0, true);
+  
+  signal(SIGINT, &sig_int_handler);
+
+  /*** VERSION INFO ***/
+
+  // Note: This print statement is used by automated post-processing code. Please be careful about changing the format.
+  cout << "[VERSION] 0.0.1" << endl; // Version numbers: First number:  Increment for major new versions
+                                     //                  Second number: Increment for any changes that you expect to matter to post-processing
+                                     //                  Third number:  Increment for any change
+  // Human-readable notes -- explain notable behavior for humans
+  cout << "Note: Phase inversion is performed in this code." << endl;
+  cout << "Note: Pre-summing is supported. If used, each sample written will have num_presums error-free samples averaged in." << endl;
+  cout << "Note: Nothing is written to the file for error pulses." << endl;
+  cout << "Note: A full num_pulses of error-free chirp data will be collected. ";
+  cout << "(Total number of TX chirps will be num_pulses + # errors)" << endl; 
+  
+  cout << "INFO: Number of TX samples: " << num_tx_samps << endl;  //needs to be after chirp and sdr object are both made
+  cout << "INFO: Number of RX samples: " << num_rx_samps << endl << endl;  //needs to be after chirp and sdr object are both made
+
+ 
+  // update the offset time for start of streaming to be offset from the current usrp time
+  chirp.setTimeOffset(chirp.getTimeOffset() + time_spec_t(sdr.getUsrp()->get_time_now()).get_real_secs());  //needs to be after chirp and sdr object are both made
+
+  /*** SPAWN THE TX THREAD ***/
+  boost::thread_group transmit_thread;
+  transmit_thread.create_thread(boost::bind(&transmit_worker, sdr.getTxStream(), sdr.getRxStream(), boost::ref(chirp), boost::ref(sdr)));
+  
+  if (!sdr.getTransmit()) {
+    cout << "WARNING: Transmit disabled by configuration file!" << endl;
+  }
 
   //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -192,10 +268,10 @@ void wrapUp(boost::asio::posix::stream_descriptor& gps_stream, ofstream& outfile
   boost::asio::io_service ioservice;
   
   if (save_loc[0] != '/') {
-    save_loc = "../../" + save_loc;
+    save_loc = "../" + save_loc;
   }
   if (gps_save_loc[0] != '/') {
-    gps_save_loc = "../../" + gps_save_loc;
+    gps_save_loc = "../" + gps_save_loc;
   }
 
   int gps_file = open(gps_save_loc.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
