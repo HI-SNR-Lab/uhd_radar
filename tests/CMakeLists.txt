@@ -19,11 +19,11 @@ add_executable(test_hisnr_usrp
     ../sdr/usrp_rf_settings.cpp
 )
 
-add_executable(test_hisnr_rfsoc42
-    sdr/test_hisnr_rfsoc42.cpp
-    ../sdr/sdr.cpp
-    ../sdr/hisnr_rfsoc42.cpp
-)
+# add_executable(test_hisnr_rfsoc42
+#     sdr/test_hisnr_rfsoc42.cpp
+#     ../sdr/sdr.cpp
+#     ../sdr/hisnr_rfsoc42.cpp
+# )
 
 add_executable(test_chirp
     sdr/test_chirp.cpp
@@ -52,7 +52,7 @@ target_include_directories(test_chirp PRIVATE ../sdr)
 target_link_libraries(test_chirp
     gtest_main
     Boost::filesystem
-    yaml-cpp::yaml-cpp
+    yaml-cpp
 )
 
 target_compile_definitions(test_sdr PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
@@ -60,7 +60,7 @@ target_include_directories(test_sdr PRIVATE ../sdr)
 target_link_libraries(test_sdr
     gtest_main
     Boost::filesystem
-    yaml-cpp::yaml-cpp
+    yaml-cpp
 )
 
 target_compile_definitions(test_hisnr_usrp PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
@@ -69,23 +69,23 @@ target_link_libraries(test_hisnr_usrp
     ${UHD_LIBRARIES}
     gtest_main
     Boost::filesystem
-    yaml-cpp::yaml-cpp
+    yaml-cpp
 )
 
-target_compile_definitions(test_hisnr_rfsoc42 PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
-target_include_directories(test_hisnr_rfsoc42 PRIVATE ../hisnr_rfsoc42)
-target_link_libraries(test_hisnr_rfsoc42
-    gtest_main
-    Boost::filesystem
-    yaml-cpp::yaml-cpp
-    ${pybind11_LIBRARIES}
-    ${Python3_LIBRARIES}
-)
+# target_compile_definitions(test_hisnr_rfsoc42 PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
+# target_include_directories(test_hisnr_rfsoc42 PRIVATE ../hisnr_rfsoc42)
+# target_link_libraries(test_hisnr_rfsoc42
+#     gtest_main
+#     Boost::filesystem
+#     yaml-cpp
+#     ${pybind11_LIBRARIES}
+#     ${Python3_LIBRARIES}
+# )
 
 include(GoogleTest)
 gtest_discover_tests(test_utils)
 gtest_discover_tests(test_pseudorandom_phase)
 gtest_discover_tests(test_sdr)
 gtest_discover_tests(test_hisnr_usrp)
-gtest_discover_tests(test_hisnr_rfsoc42)
+# gtest_discover_tests(test_hisnr_rfsoc42)
 gtest_discover_tests(test_chirp)

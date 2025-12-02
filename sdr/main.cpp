@@ -194,9 +194,9 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
   string yaml_filename;
   if (argc >= 2) {
-    yaml_filename = "../../" + string(argv[1]);
+    yaml_filename = "../" + string(argv[1]);
   } else {
-    yaml_filename = "../../config/default.yaml";
+    yaml_filename = "../config/default.yaml";
   }
   cout << "Reading from config file: " << yaml_filename << endl;
 
@@ -269,10 +269,10 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
 
   
   if (save_loc[0] != '/') {
-    save_loc = "../../" + save_loc;
+    save_loc = "../" + save_loc;
   }
   if (gps_save_loc[0] != '/') {
-    gps_save_loc = "../../" + gps_save_loc;
+    gps_save_loc = "../" + gps_save_loc;
   }
 
   int gps_file = open(gps_save_loc.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);

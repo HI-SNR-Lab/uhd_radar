@@ -8,7 +8,6 @@
 # Recent update to CMAKE (3.30) that changes how FindBoost library is linked
     # for more details about changes made, run cmake --help CMP0167
 cmake_minimum_required(VERSION 3.30)
-
 # # for debugging purposes
 # set(CMAKE_FIND_DEBUG_MODE ON)
 # set(CMAKE_FIND_PACKAGE_TRACE ON)
@@ -27,6 +26,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "C
     set(CMAKE_CXX_FLAGS "-stdlib=libc++ ${CMAKE_CXX_FLAGS}")
 endif()
 
+ # included due to error in compatability between Boost and UHD
+add_compile_options(-Wno-enum-constexpr-conversion)
 set(CMAKE_CXX_FLAGS "-Wno-psabi ${CMAKE_CXX_FLAGS}")
 
 ### Set up build environment ##################################################
@@ -42,8 +43,8 @@ find_package(UHD 3.15.0 REQUIRED)
 
 find_package(yaml-cpp CONFIG REQUIRED)
 
-find_package(pybind11 REQUIRED)
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+# find_package(pybind11 REQUIRED)
+# find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 # This example also requires Boost.
 # Set components here, then include UHDBoost to do the actual finding
@@ -62,10 +63,9 @@ message("THE PYTHON LIBRARY YOU'RE LINKING IS ${pybind11_INCLUDE_DIRS}")
 # need these include and link directories for the build
 include_directories(
     ${Boost_INCLUDE_DIRS}
-    ${UHD_INCLUDE_DIRS}
     ${YAML_CPP_INCLUDE_DIR}
-    ${pybind11_INCLUDE_DIRS}
-    ${Python3_INCLUDE_DIRS}
+    # ${pybind11_INCLUDE_DIRS}
+    # ${Python3_INCLUDE_DIRS}
 )
 link_directories(${Boost_LIBRARY_DIRS})
 
@@ -80,7 +80,18 @@ FetchContent_MakeAvailable(googletest)
 
 ### Make the executables #######################################################
 # Radar executable
-add_executable(radar main.cpp hisnr_usrp.cpp hisnr_usrp.hpp hisnr_rfsoc42.cpp hisnr_rfsoc42.hpp usrp_rf_settings.cpp usrp_rf_settings.hpp utils.cpp utils.hpp pseudorandom_phase.cpp pseudorandom_phase.hpp chirp.hpp chirp.cpp sdr.cpp sdr.hpp common.hpp)
+add_executable(radar main.cpp 
+                hisnr_usrp.cpp hisnr_usrp.hpp 
+                # hisnr_rfsoc42.cpp hisnr_rfsoc42.hpp 
+                usrp_rf_settings.cpp usrp_rf_settings.hpp 
+                utils.cpp utils.hpp 
+                pseudorandom_phase.cpp pseudorandom_phase.hpp 
+                chirp.hpp chirp.cpp 
+                sdr.cpp sdr.hpp 
+                common.hpp)
+# included in this way due to some issues with UHD 
+target_include_directories(radar SYSTEM PRIVATE ${UHD_INCLUDE_DIRS} )
+
 # Psuedorandom phase noise generation for post-processing
 add_executable(pseudorandom_phase_codes_to_file pseudorandom_phase_to_file.cpp pseudorandom_phase.cpp pseudorandom_phase.hpp common.hpp)
 
@@ -93,7 +104,13 @@ set(CMAKE_BUILD_TYPE "Release")
 # anything else we need (in this case, some Boost libraries):
 if(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against shared UHD library.")
-    target_link_libraries(radar ${UHD_LIBRARIES} ${Boost_LIBRARIES} ${pybind11_LIBRARIES} ${Python3_LIBRARIES} yaml-cpp::yaml-cpp)
+    target_link_libraries(radar 
+                            ${UHD_LIBRARIES} 
+                            ${Boost_LIBRARIES} 
+                            # ${pybind11_LIBRARIES} 
+                            # ${Python3_LIBRARIES} 
+                            yaml-cpp
+                            )
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
 else(NOT UHD_USE_STATIC_LIBS)

@@ -1,3 +1,5 @@
+OUTDIR ?= ettus
+
 .PHONY: software-test
 .PHONY: hardware-test
 software-test: build-cxx software-cxx-test python-test
