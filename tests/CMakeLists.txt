@@ -1,6 +1,19 @@
+### IDENTIFIES RADIO USER IS TRYING TO USE ##########################
+set(ETTUS "ettus")
+set(AMD "amd")
+
+# If Conda is running, user is assumed to be using an Ettus radio
+if(DEFINED ENV{CONDA_DEFAULT_ENV})
+    message(STATUS "Running in Conda environment: $ENV{CONDA_DEFAULT_ENV}")
+    set(ASSUMED_RADIO_TYPE ETTUS)
+else()
+    message(STATUS "Running in PYNQ environment: pynq-venv")
+    set(ASSUMED_RADIO_TYPE AMD)
+endif()
+
+### ADDS NECESSARY PACKAGES FOR TESTING ##########################
 find_package(Boost REQUIRED COMPONENTS filesystem)
 find_package(yaml-cpp CONFIG REQUIRED)
-find_package(UHD REQUIRED)
 
 add_executable(test_utils
     sdr/test_utils.cpp
@@ -12,18 +25,6 @@ add_executable(test_sdr
     ../sdr/sdr.cpp
 )
 
-add_executable(test_hisnr_usrp
-    sdr/test_hisnr_usrp.cpp
-    ../sdr/sdr.cpp
-    ../sdr/hisnr_usrp.cpp
-    ../sdr/usrp_rf_settings.cpp
-)
-
-# add_executable(test_hisnr_rfsoc42
-#     sdr/test_hisnr_rfsoc42.cpp
-#     ../sdr/sdr.cpp
-#     ../sdr/hisnr_rfsoc42.cpp
-# )
 
 add_executable(test_chirp
     sdr/test_chirp.cpp
@@ -63,29 +64,54 @@ target_link_libraries(test_sdr
     yaml-cpp
 )
 
-target_compile_definitions(test_hisnr_usrp PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
-target_include_directories(test_hisnr_usrp PRIVATE ../hisnr_usrp)
-target_link_libraries(test_hisnr_usrp
-    ${UHD_LIBRARIES}
-    gtest_main
-    Boost::filesystem
-    yaml-cpp
-)
-
-# target_compile_definitions(test_hisnr_rfsoc42 PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
-# target_include_directories(test_hisnr_rfsoc42 PRIVATE ../hisnr_rfsoc42)
-# target_link_libraries(test_hisnr_rfsoc42
-#     gtest_main
-#     Boost::filesystem
-#     yaml-cpp
-#     ${pybind11_LIBRARIES}
-#     ${Python3_LIBRARIES}
-# )
 
 include(GoogleTest)
 gtest_discover_tests(test_utils)
 gtest_discover_tests(test_pseudorandom_phase)
 gtest_discover_tests(test_sdr)
-gtest_discover_tests(test_hisnr_usrp)
-# gtest_discover_tests(test_hisnr_rfsoc42)
 gtest_discover_tests(test_chirp)
+
+# Radio Specific Executables, Definitions, and Tests
+if(${${ASSUMED_RADIO_TYPE}} STREQUAL "${ETTUS}")
+    find_package(UHD REQUIRED)
+    add_executable(test_hisnr_usrp
+                    sdr/test_hisnr_usrp.cpp
+                    ../sdr/sdr.cpp
+                    ../sdr/hisnr_usrp.cpp
+                    ../sdr/usrp_rf_settings.cpp
+    )
+
+    target_compile_definitions(test_hisnr_usrp PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
+    target_include_directories(test_hisnr_usrp PRIVATE ../hisnr_usrp)
+    target_link_libraries(test_hisnr_usrp
+                            ${UHD_LIBRARIES}
+                            gtest_main
+                            Boost::filesystem
+                            yaml-cpp
+    )
+
+    gtest_discover_tests(test_hisnr_usrp)
+
+### AMD Radio is assumed
+else()
+    find_package(pybind11 REQUIRED)
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+    add_executable(test_hisnr_rfsoc42
+                    sdr/test_hisnr_rfsoc42.cpp
+                    ../sdr/sdr.cpp
+                    ../sdr/hisnr_rfsoc42.cpp
+    )
+
+    target_compile_definitions(test_hisnr_rfsoc42 PRIVATE CONFIG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../config")
+    target_include_directories(test_hisnr_rfsoc42 PRIVATE ../hisnr_rfsoc42)
+    target_link_libraries(test_hisnr_rfsoc42
+                            gtest_main
+                            Boost::filesystem
+                            yaml-cpp
+                            ${pybind11_LIBRARIES}
+                            ${Python3_LIBRARIES}
+    )
+
+    gtest_discover_tests(test_hisnr_rfsoc42)
+endif()
