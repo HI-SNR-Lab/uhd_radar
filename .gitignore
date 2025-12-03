@@ -16,6 +16,7 @@ postprocessing/*.png
 
 boards/*
 docs/*
+pynq-venv/*
 
 # Python
 
