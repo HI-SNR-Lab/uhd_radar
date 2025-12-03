@@ -147,7 +147,7 @@ else()
                     chirp.hpp chirp.cpp 
                     sdr.cpp sdr.hpp 
                     common.hpp)
-elseif()
+endif(${${ASSUMED_RADIO_TYPE}} STREQUAL "${ETTUS}")
 
 # Psuedorandom phase noise generation for post-processing
 add_executable(pseudorandom_phase_codes_to_file pseudorandom_phase_to_file.cpp 
