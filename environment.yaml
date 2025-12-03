@@ -1,4 +1,4 @@
-name: orca
+name: uhd
 channels:
   - conda-forge
   - defaults
