@@ -135,9 +135,10 @@ if(${${ASSUMED_RADIO_TYPE}} STREQUAL "${ETTUS}")
                     pseudorandom_phase.cpp pseudorandom_phase.hpp 
                     chirp.hpp chirp.cpp 
                     sdr.cpp sdr.hpp 
-                    common.hpp)
+                    common.hpp common_usrp.hpp)
     # included in this way due to some issues with UHD 
     target_include_directories(radar SYSTEM PRIVATE ${UHD_INCLUDE_DIRS} )
+    target_compile_definitions(radar PRIVATE RADIO_ETTUS)
 else()
     add_executable(radar main.cpp 
                     hisnr_rfsoc42.cpp hisnr_rfsoc42.hpp 
@@ -146,13 +147,23 @@ else()
                     pseudorandom_phase.cpp pseudorandom_phase.hpp 
                     chirp.hpp chirp.cpp 
                     sdr.cpp sdr.hpp 
-                    common.hpp)
+                    common.hpp common_rfsoc42.hpp)
+    target_compile_definitions(radar PRIVATE RADIO_AMD)
 endif(${${ASSUMED_RADIO_TYPE}} STREQUAL "${ETTUS}")
 
 # Psuedorandom phase noise generation for post-processing
-add_executable(pseudorandom_phase_codes_to_file pseudorandom_phase_to_file.cpp 
-                pseudorandom_phase.cpp pseudorandom_phase.hpp 
-                common.hpp)
+if(${${ASSUMED_RADIO_TYPE}} STREQUAL "${ETTUS}")
+    add_executable(pseudorandom_phase_codes_to_file pseudorandom_phase_to_file.cpp 
+                    pseudorandom_phase.cpp pseudorandom_phase.hpp 
+                    common.hpp common_usrp.hpp)
+    # included in this way due to some issues with UHD 
+    target_include_directories(radar SYSTEM PRIVATE ${UHD_INCLUDE_DIRS} )
+else()
+    add_executable(pseudorandom_phase_codes_to_file pseudorandom_phase_to_file.cpp 
+                    pseudorandom_phase.cpp pseudorandom_phase.hpp 
+                    common.hpp common_rfsoc42.hpp)
+endif(${${ASSUMED_RADIO_TYPE}} STREQUAL "${ETTUS}")
+
 
 enable_testing()
 add_subdirectory(${CMAKE_SOURCE_DIR}/../tests ${CMAKE_BINARY_DIR}/tests)

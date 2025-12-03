@@ -6,6 +6,8 @@
 #include "common.hpp"
 #include "sdr.hpp"
 
+using namespace uhd;
+
 class HiSnrUsrp : public Sdr {
 
   public:

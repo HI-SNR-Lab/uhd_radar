@@ -4,7 +4,10 @@
 #define RF_SETTINGS_HPP
 
 #include "common.hpp"
+#include "common_usrp.hpp"
 #include "yaml-cpp/yaml.h"
+
+using namespace uhd;
 
 // Set USRP RF parameters for a single channel of operation
 bool set_rf_params_single(usrp::multi_usrp::sptr usrp, YAML::Node rf0, 
