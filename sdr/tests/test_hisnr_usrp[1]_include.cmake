@@ -1,0 +1,5 @@
+if(EXISTS "/Users/zowo4540/Desktop/Codes/Github/orca/sdr/tests/test_hisnr_usrp[1]_tests.cmake")
+  include("/Users/zowo4540/Desktop/Codes/Github/orca/sdr/tests/test_hisnr_usrp[1]_tests.cmake")
+else()
+  add_test(test_hisnr_usrp_NOT_BUILT test_hisnr_usrp_NOT_BUILT)
+endif()

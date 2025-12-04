@@ -30,8 +30,6 @@ long int last_pulse_num_written = -1; // Index number (pulses_received - error_c
 // Cout mutex
 std::mutex cout_mutex;
 
-#ifdef RADIO_ETTUS
-
   /**
    * @brief Checks for errors in the RX buffer and adds the errors to a counter, before using transform() on the incoming pulse
    * 
@@ -500,4 +498,3 @@ std::mutex cout_mutex;
   cout << "[TX] Done." << endl;
 
   }
-#endif

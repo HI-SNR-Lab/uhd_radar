@@ -24,14 +24,11 @@
 
 constexpr const char* RADIO_TYPE = "@RADIO_TYPE@";
 
-#ifdef RADIO_ETTUS
-    #include "common_usrp.hpp"
-    #include "hisnr_usrp.hpp"
-    #include "usrp_rf_settings.hpp"
-#elif defined(RADIO_AMD)
-    #include "common_rfsoc42.hpp"
-    #include "hisnr_rfsoc42.hpp"
-#endif
+#include "common_usrp.hpp"
+#include "hisnr_usrp.hpp"
+#include "usrp_rf_settings.hpp"
+#include "common_rfsoc42.hpp"
+#include "hisnr_rfsoc42.hpp"
 
 bool checkForFullSampleSum(Chirp& chirp, vector<complex<float>>& sample_sum, ofstream& outfile);
 void splitOutputFiles(Chirp& chirp, ofstream& outfile, string& current_filename, int& save_file_index);

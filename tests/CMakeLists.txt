@@ -74,6 +74,8 @@ gtest_discover_tests(test_chirp)
 # Radio Specific Executables, Definitions, and Tests
 if(${${ASSUMED_RADIO_TYPE}} STREQUAL "${ETTUS}")
     find_package(UHD REQUIRED)
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
     add_executable(test_hisnr_usrp
                     sdr/test_hisnr_usrp.cpp
                     ../sdr/sdr.cpp
