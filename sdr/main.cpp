@@ -193,9 +193,9 @@ std::mutex cout_mutex;
 
   string yaml_filename;
   if (argc >= 2) {
-    yaml_filename = "../" + string(argv[1]);
+    yaml_filename = "../../" + string(argv[1]);
   } else {
-    yaml_filename = "../config/default.yaml";
+    yaml_filename = "../../config/default.yaml";
   }
   cout << "Reading from config file: " << yaml_filename << endl;
 
@@ -206,8 +206,8 @@ std::mutex cout_mutex;
   sdr.createRadio();
   sdr.setupRadio();
 
-  //YAML::Node rf0 = config["RF0"];
-  // YAML::Node rf1 = config["RF1"];
+  YAML::Node rf0 = config["RF0"];
+  YAML::Node rf1 = config["RF1"];
 
   YAML::Node files = config["FILES"];
   chirp_loc = files["chirp_loc"].as<string>();
@@ -268,10 +268,10 @@ std::mutex cout_mutex;
 
 
   if (save_loc[0] != '/') {
-    save_loc = "../" + save_loc;
+    save_loc = "../../" + save_loc;
   }
   if (gps_save_loc[0] != '/') {
-    gps_save_loc = "../" + gps_save_loc;
+    gps_save_loc = "../../" + gps_save_loc;
   }
 
   int gps_file = open(gps_save_loc.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
@@ -347,10 +347,10 @@ std::mutex cout_mutex;
 
 
     // get gps data
-    /*if (sdr.getClkRef() == "gpsdo" && ((pulses_received % 100000) == 0)) {
+    if (sdr.getClkRef() == "gpsdo" && ((pulses_received % 100000) == 0)) {
       gps_data = sdr.getUsrp()->get_mboard_sensor("gps_gprmc").to_pp_string();
-      //cout << gps_data << endl;
-    }*/
+      cout << gps_data << endl;
+    }
 
     // check if someone wants to stop
     if (stop_signal_called) {
@@ -361,15 +361,15 @@ std::mutex cout_mutex;
     }
 
     // write gps string to file
-    /*if (sdr.getClkRef() == "gpsdo") {
+    if (sdr.getClkRef() == "gpsdo") {
       boost::asio::async_write(gps_stream, boost::asio::buffer(gps_data + "\n"), gps_asio_handler);
-    }*/
+    }
 
     // split output files based on number of chirps
     splitOutputFiles(chirp, outfile, current_filename, save_file_index);
     
-    // // clear the matrices holding the sums
-    // fill(sample_sum.begin(), sample_sum.end(), complex<int16_t>(0,0));
+    // clear the matrices holding the sums
+    fill(sample_sum.begin(), sample_sum.end(), complex<int16_t>(0,0));
   }
 
   /*** WRAP UP ***/

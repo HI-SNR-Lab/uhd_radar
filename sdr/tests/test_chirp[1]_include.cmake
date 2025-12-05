@@ -1,5 +1,0 @@
-if(EXISTS "/Users/zowo4540/Desktop/Codes/Github/orca/sdr/tests/test_chirp[1]_tests.cmake")
-  include("/Users/zowo4540/Desktop/Codes/Github/orca/sdr/tests/test_chirp[1]_tests.cmake")
-else()
-  add_test(test_chirp_NOT_BUILT test_chirp_NOT_BUILT)
-endif()

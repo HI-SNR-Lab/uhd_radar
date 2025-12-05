@@ -1,5 +1,0 @@
-if(EXISTS "/Users/zowo4540/Desktop/Codes/Github/orca/sdr/tests/test_pseudorandom_phase[1]_tests.cmake")
-  include("/Users/zowo4540/Desktop/Codes/Github/orca/sdr/tests/test_pseudorandom_phase[1]_tests.cmake")
-else()
-  add_test(test_pseudorandom_phase_NOT_BUILT test_pseudorandom_phase_NOT_BUILT)
-endif()

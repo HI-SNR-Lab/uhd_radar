@@ -19,7 +19,7 @@ software-cxx-test:
 .PHONY: python-test
 python-test:
 	@echo "Running Python tests..."
-	conda run -n uhd pytest tests/
+	conda run -n uhd pytest tests/build
 
 
 .PHONY: hardware-cxx-test

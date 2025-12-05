@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wno-psabi  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/test_utils.dir/sdr/test_utils.cpp.o CMakeFiles/test_utils.dir/__/utils.cpp.o -o test_utils  -Wl,-rpath,/opt/anaconda3/envs/uhd/lib ../lib/libgtest_main.a /opt/anaconda3/envs/uhd/lib/libboost_filesystem.dylib ../lib/libgtest.a /opt/anaconda3/envs/uhd/lib/libboost_atomic.dylib
