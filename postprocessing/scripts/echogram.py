@@ -1,3 +1,22 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "dask==2025.12.0",
+#     "distributed==2025.12.0",
+#     "holoviews==1.22.1",
+#     "hvplot==0.12.2",
+#     "marimo",
+#     "matplotlib==3.10.8",
+#     "numpy==2.4.0",
+#     "pandas==2.3.3",
+#     "ruamel-yaml==0.19.0",
+#     "scipy==1.16.3",
+#     "simple-parsing==0.1.7",
+#     "xarray==2025.12.0",
+#     "zarr==3.1.5",
+# ]
+# ///
+
 import marimo
 
 __generated_with = "0.18.4"
