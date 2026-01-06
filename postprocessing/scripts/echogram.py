@@ -448,11 +448,11 @@ def _(mo):
 
 
 @app.cell
-def _(compressed_power, plt):
+def _(compressed_power, imagepath, mo, os, plt, test):
     def _():
         # USING MATPLOTLIB (sometimes takes a while)
-        fig, ax = plt.subplots(1,1, figsize=(10,6), facecolor='white')
-    
+        fig, ax = plt.subplots(1,1, figsize=(14,6), facecolor='white')
+
         p = ax.pcolormesh(compressed_power.slow_time, \
                           compressed_power.reflection_distance, \
                           compressed_power.radar_data.transpose(), \
@@ -466,18 +466,24 @@ def _(compressed_power, plt):
         ax.set_ylabel('Distance to Reflector (m)')
         # relevant options: ax.set_ylim=(100,-50), ax.set_xlim=(0, 1), vmin=-90, vmax=40
         ax.set_ylim(2000, -50)
-        return ax
+        plt.title(f"{test} Radargram")
+    
+        if mo.running_in_notebook():
+            return ax
+        else:
+            imagefile = os.path.join(imagepath, f"{test}-radargram.png")
+            plt.savefig(imagefile, bbox_inches='tight')
 
     _()
     return
 
 
 @app.cell
-def _(geocompressed_power, plt):
+def _(geocompressed_power, imagepath, mo, os, plt, test):
     def _():
         # USING MATPLOTLIB (sometimes takes a while)
-        fig, ax = plt.subplots(1,1, figsize=(10,6), facecolor='white')
-    
+        fig, ax = plt.subplots(1,1, figsize=(14,6), facecolor='white')
+
         p = ax.pcolormesh(geocompressed_power.distance_bin, \
                           geocompressed_power.reflection_distance, \
                           geocompressed_power.radar_data.transpose(), \
@@ -491,15 +497,15 @@ def _(geocompressed_power, plt):
         ax.set_ylabel('Distance to Reflector (m)')
         # relevant options: ax.set_ylim=(100,-50), ax.set_xlim=(0, 1), vmin=-90, vmax=40
         ax.set_ylim(2000, -50)
-        return ax
+        plt.title(f"{test} Radargram - Georeferenced")
+    
+        if mo.running_in_notebook():
+            return ax
+        else:
+            imagefile = os.path.join(imagepath, f"{test}-radargram-georeferenced.png")
+            plt.savefig(imagefile, bbox_inches='tight')
 
     _()
-    return
-
-
-@app.cell
-def _(sys):
-    sys.argv
     return
 
 
