@@ -31,6 +31,13 @@ def _():
 
 @app.cell
 def _():
+    from dataclasses import dataclass
+    from simple_parsing import ArgumentParser
+    return ArgumentParser, dataclass
+
+
+@app.cell
+def _():
     from dask.distributed import Client, LocalCluster
 
     client = Client() # Note that `memory_limit` is the limit **per worker**.
@@ -139,22 +146,71 @@ def _(mo):
     return
 
 
-@app.cell
-def _():
-    path = "/Volumes/CI1/"
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    #### Argument Parsing
 
-    test = "20251209_200750" # leg 3 - down at 350, 58 db
-
-    zarr_base_location="/Users/thatch/Projects/SORA/before-and-after-test/test_tmp_zarr_cache/"
-
-    prefix = path + test
-    return path, prefix, test, zarr_base_location
-
-
-@app.cell
-def _(os, path):
-    os.path.join(path, "radar_zarrs")
+    Logic based on https://docs.marimo.io/guides/scripts/#simple-parsing
+    """)
     return
+
+
+@app.cell
+def _(ArgumentParser, dataclass):
+    parser = ArgumentParser()
+
+    @dataclass
+    class InputLocation:
+        """Input location arguments.
+        - path: directory containing test files
+        - prefix: prefix of files for the desired radargram
+        """
+
+        path: str  # Path to folder contain test files
+        prefix: str  # Test name prefix for desired stest
+
+    parser.add_arguments(InputLocation, dest="input")
+    parser.add_argument("--imagepath", type=str, default="./", help="directory in which to save radargram images")
+    parser.add_argument("--zarrpath", type=str, default="./", help="directory in which to save ZARR files")
+    return (parser,)
+
+
+@app.cell
+def _(mo, parser):
+    def _():
+        zarr_base_location="/Users/thatch/Projects/SORA/before-and-after-test/test_tmp_zarr_cache/"
+
+        path = "/Volumes/CI1/"
+        test = "20251209_200750" # leg 3 - down at 350, 58 db
+
+        def parse_args():
+            if mo.running_in_notebook():
+                # set default values for the command-line arguments when running as a notebook
+                # in this case, just pass along the values defined above as the defaults.
+                # notebook users can edit those values when running in notebook mode.
+                imagepath = "."
+                return path, test, imagepath, zarr_base_location
+            else:
+                args = parser.parse_args()
+                return args.input.path, args.input.prefix, args.imagepath, args.zarrpath
+
+        return parse_args
+
+    parse_args = _()
+    return (parse_args,)
+
+
+@app.cell
+def _(parse_args):
+    path, test, imagepath, zarr_base_location = parse_args()
+    return imagepath, path, test, zarr_base_location
+
+
+@app.cell
+def _(path, test):
+    prefix = path + test
+    return (prefix,)
 
 
 @app.cell
@@ -184,7 +240,7 @@ def _(geostack, get_distance_along_track, gps, start_and_stop_from_log):
         print(f"Duration: {duration:.1f} s")
 
         gpsdf["slow_time"] = gpsdf["unix_time"] - res["start"]
-    
+
         georaw = geostack.add_distance_to_xarray(raw, 
                                              raw.slow_time.compute(), 
                                              gpsdf["slow_time"].iloc[1:],
