@@ -125,6 +125,10 @@ def _(parse_stdout_times):
             if parsed:
                 results.append(parsed)
 
+        # handle the case where we didn't get the stop time
+        if len(results)==1:
+            results.append(float("NaN"))
+    
         return {"start": results[0], "stop": results[1]}
     return (start_and_stop_from_log,)
 
@@ -214,9 +218,17 @@ def _(path, test):
 
 
 @app.cell
+def _(prefix, zarr_base_location):
+    print(f"Processing {prefix}* files")
+    print(f"ZARR cache location: {zarr_base_location}")
+    return
+
+
+@app.cell
 def _(pr, prefix, xr, zarr_base_location):
     # resave data as zarr for dask processing
-    zarr_path = pr.save_radar_data_to_zarr(prefix, zarr_base_location=zarr_base_location)
+    #zarr_path = pr.save_radar_data_to_zarr(prefix, zarr_base_location=zarr_base_location)
+    zarr_path = pr.save_radar_data_to_zarr(prefix, zarr_base_location=zarr_base_location,expected_base_name_regex=False)
 
     # open zarr file, adjust chunk size to be 10 MB - 1 GB based on sample rate/bit depth
     raw = xr.open_zarr(zarr_path, chunks={"pulse_idx": 1000})
@@ -467,12 +479,13 @@ def _(compressed_power, imagepath, mo, os, plt, test):
         # relevant options: ax.set_ylim=(100,-50), ax.set_xlim=(0, 1), vmin=-90, vmax=40
         ax.set_ylim(2000, -50)
         plt.title(f"{test} Radargram")
-    
+
         if mo.running_in_notebook():
             return ax
         else:
             imagefile = os.path.join(imagepath, f"{test}-radargram.png")
             plt.savefig(imagefile, bbox_inches='tight')
+            print(f"Saved {imagefile}")
 
     _()
     return
@@ -488,7 +501,7 @@ def _(geocompressed_power, imagepath, mo, os, plt, test):
                           geocompressed_power.reflection_distance, \
                           geocompressed_power.radar_data.transpose(), \
                           shading='auto', cmap='inferno',\
-                          vmin = -100, vmax=-60
+                          vmin = -100, vmax=-20
                          )
         ax.invert_yaxis()
         clb = fig.colorbar(p, ax=ax)
@@ -498,12 +511,13 @@ def _(geocompressed_power, imagepath, mo, os, plt, test):
         # relevant options: ax.set_ylim=(100,-50), ax.set_xlim=(0, 1), vmin=-90, vmax=40
         ax.set_ylim(2000, -50)
         plt.title(f"{test} Radargram - Georeferenced")
-    
+
         if mo.running_in_notebook():
             return ax
         else:
             imagefile = os.path.join(imagepath, f"{test}-radargram-georeferenced.png")
             plt.savefig(imagefile, bbox_inches='tight')
+            print(f"Saved {imagefile}")
 
     _()
     return
