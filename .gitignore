@@ -17,5 +17,5 @@ postprocessing/*.png
 __pycache__/
 
 # Notebooks
-
+postprocessing/scripts/__marimo__/
 .ipynb_checkpoints
