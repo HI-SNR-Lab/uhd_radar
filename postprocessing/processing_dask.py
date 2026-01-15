@@ -91,6 +91,7 @@ def save_radar_data_to_zarr(prefix, skip_if_cached=True, zarr_base_location=None
     # Build filenames from prefix
     rx_samps_file = prefix + "_rx_samps.bin"
     log_file = prefix + "_uhd_stdout.log"
+    gpsd_file = prefix + "_gpspipe_stdout.log"
 
     #
     # Data loading
@@ -137,6 +138,18 @@ def save_radar_data_to_zarr(prefix, skip_if_cached=True, zarr_base_location=None
             raise FileNotFoundError(
                 f"Log file not found: {log_file}. If a log file is not required, set log_required=False")
 
+    gpsdlog = None
+    if os.path.exists(gpsd_file):
+        with open(gpsd_file, 'r') as gpsd_f:
+            gpsdlog = gpsd_f.read()
+    else:
+        print("No GPS log file found!!")
+        gpsdlog = None
+        #if log_required:
+        #    raise FileNotFoundError(
+        #        f"Log file not found: {log_file}. If a log file is not required, set log_required=False")
+
+    
     # Save radar_data, slow_time, and fs to an xarray datarray
     data = xr.Dataset(
         data_vars={
@@ -151,6 +164,7 @@ def save_radar_data_to_zarr(prefix, skip_if_cached=True, zarr_base_location=None
         attrs={
             "config": config,
             "stdout_log": log,
+            "gpspipe_log": gpsdlog,
             "prefix": prefix,
             "basename": basename
         }
