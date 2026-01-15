@@ -13,11 +13,12 @@ GENERATE:
     lo_offset_sw: 0e6                    # [Hz] Center frequency of the chirp
                                          #   (relative to RF center frequency)
     window: 'rectangular'                # Window function applied to the chirp
+      # window: 'blackman'                # Window function applied to the chirp
                                          #   Supported options: "rectangular",
                                          #   "hamming", "blackman", "kaiser10",
                                          #   "kaiser14", "kaiser18"
-    chirp_length: &chirp_len 20e-6       # [s] Chirp length without zero padding
-    pulse_length: &pulse_len 20e-6       # [s] Total pulse length (chirp +
+    chirp_length: &chirp_len 5e-6       # [s] Chirp length without zero padding
+    pulse_length: &pulse_len 5e-6       # [s] Total pulse length (chirp +
                                          #   symmetric zero padding)    
     out_file: &ch_sent "data/chirp.bin"  # The name of the output binary file
                                          #   containing the pulse samples
@@ -68,9 +69,10 @@ RF0:
     rx_rate: *s_rate                     # [Hz] RX Sample Rate
     tx_rate: *s_rate                     # [Hz] TX Sample Rate
     freq: 450e6                          # [Hz] Center Frequency (mixer frequency)
+      #freq: 390e6                          # [Hz] Center Frequency (mixer frequency)
     lo_offset: 15e6                      # [Hz] LO offset
     rx_gain: 36                          # [dB] RX Gain
-    tx_gain: 65                          # [dB] TX Gain - 60.8 is about -10 dBm
+    tx_gain: 53                          # [dB] TX Gain - 60.8 is about -10 dBm
                                          #   output on the b205mini
     bw: 56e6                             # [Hz] Configurable filter bandwidth
     tx_ant: "TX/RX"                      # Port to be used for TX
@@ -102,17 +104,18 @@ CHIRP:
     time_offset: 1                       # [s] Offset time before the first
                                          #   received sample
     tx_duration: *pulse_len              # [s] Transmission duration
-    rx_duration: 20e-6                   # [s] Receive duration
+    rx_duration: 40e-6                   # [s] Receive duration
+      #rx_duration: 80e-6                   # [s] Receive duration
     tr_on_lead: 0e-6                     # [s] Time from GPIO output toggle on
                                          #   to TX (if using GPIO)
     tr_off_trail: 0e-6                   # [s] Time from TX off to GPIO output
                                          #   off (if using GPIO)
     pulse_rep_int: 200e-6                # [s] Pulse period
     tx_lead: 0e-6                        # [s] Time between start of TX and RX
-    num_pulses: &num_pulses 10000        # No. of chirps to TX/RX - set to -1 to
+    num_pulses: &num_pulses -1        # No. of chirps to TX/RX - set to -1 to
                                          #   continuously transmit pulses until
                                          #   stopped
-    num_presums: 1                       # Number of received pulses to average
+    num_presums: 50                       # Number of received pulses to average
                                          #   over before writing to file
     phase_dithering: true                # Enable phase dithering
 ### DURING-RECORDING FILE LOCATIONS
@@ -123,17 +126,17 @@ FILES:
     gps_loc: &gps_save_loc "data/gps_log.txt" # (Temporary) location to save GPS
                                               #   data (only works if gpsdo is
                                               #   selected as the clock source)
-    max_chirps_per_file: -1              # Maximum number of RX from a chirp to
+    max_chirps_per_file: 300000              # Maximum number of RX from a chirp to
                                          #   write to a single file set to -1 to
                                          #   avoid breaking into multiple files
 ### RUN.PY FILE SAVE LOCATIONS
 RUN_MANAGER: # These settings are only used by run.py -- not read by main.cpp
     # Note: if max_chirps_per_file = -1 (i.e. all data will be written directly
     # to a single file, then final_save_loc and save_partial_files will be ignored
-    final_save_loc: null                 # Save location for the big final file,
+    final_save_loc: "data/rx_samps.bin"                 # Save location for the big final file,
                                          #   set to null if you don't want to
                                          #   save a big file
-    save_partial_files: False            # Set to true if you want individual
+    save_partial_files: True            # Set to true if you want individual
                                          #   small files to be copied, set to
                                          #   false if you just want the big
                                          #   merged file to be copied
