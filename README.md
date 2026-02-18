@@ -1,3 +1,5 @@
+**This repository is a mirror of the main ORCA documentation website maintained by Stanford. For the most up-to-date documentation, see the HI-SNR lab website below:**
+
 # Documentation for the Open Radar Code Architecture (ORCA)
 
 This repository contains the source code for ORCA documentation website found
