@@ -1,4 +1,4 @@
-baseURL = "https://hi-snr-lab.github.io/HI-SNR.github.io/orca/"
+baseURL = "https://orca.radioglaciology.com/"
 relativeURLs = false
 canonifyURLs = true
 title = "Open Radar Code Architecture"
