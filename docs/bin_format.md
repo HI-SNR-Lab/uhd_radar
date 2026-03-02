@@ -1,14 +1,21 @@
 # ORCA `.bin` File Format
 
-Raw radar sample files written by `uhd_radar` (`sdr/main.cpp`).
+Raw radar sample files written by `uhd_radar`
+([`sdr/main.cpp`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp)).
 
 ## Byte Layout
 
 - **No header** — pure binary data from the first byte
-- **Endianness** — little-endian
+  ([`main.cpp:582-583`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L582-L583):
+  `outfile.write((const char*)&sample_sum.front(), num_rx_samps * sizeof(complex<float>))`)
+- **Endianness** — little-endian (host byte order; USRP host code always runs on x86/ARM little-endian)
 - **Sample type** — interleaved `float32` pairs: `(real, imag)` → `complex64` / `fc32`
+  (only `fc32` is supported: [`main.cpp:506-507`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L506-L507);
+  format described in [`processing.py:122-124`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/postprocessing/processing.py#L122-L124))
 - **Bytes per complex sample** — 8 bytes (4 bytes real + 4 bytes imag)
 - **Samples per record** — `sample_rate × rx_duration` (computed from `*_config.yaml`)
+  ([`main.cpp:184`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L184):
+  `num_rx_samps = rx_rate * rx_duration`)
 - **Bytes per record** — `samples_per_record × 8`
 
 ### Example (test-data session `20251205_164609`)
@@ -35,6 +42,12 @@ offset(N) = N × samples_per_record × 8
 Records are zero-indexed. Record 0 starts at byte 0.
 
 ## Python: Reading One Record
+
+The existing read helper in `postprocessing/processing.py` is
+[`extractSig()`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/postprocessing/processing.py#L128-L130),
+which reads `float32` values and reconstructs complex pairs as
+`sig_floats[::2] + 1j * sig_floats[1::2]`.  The equivalent using
+`numpy.view` (avoids a copy):
 
 ```python
 import numpy as np
@@ -68,6 +81,18 @@ All metadata is external to the `.bin` file:
 | `*_gpspipe_stdout.log` | GPSD JSON (TPV at ~1 Hz: `lat`, `lon`, `altHAE`, `time`) |
 | `*_track.gpx` | GPX trackpoints (fallback GPS source) |
 
+### Log format
+
+The stdout log entries cited below are emitted by `main.cpp` and are explicitly
+noted in comments as used by post-processing code (format changes require care):
+
+| Log marker | Source line | Example |
+|-----------|-------------|---------|
+| `[START]` | [`main.cpp:530`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L530) | `[1764952121.787] [START] Beginning main loop` |
+| `[ERROR]` | [`main.cpp:543`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L543) | `[...] [ERROR] (Chirp 140907) Receiver error: ERROR_CODE_LATE_COMMAND` |
+| `[OPEN FILE]` / `[CLOSE FILE]` | [`main.cpp:496`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L496), [`main.cpp:617-625`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L617-L625) | `[...] [OPEN FILE] ../../data/rx_samps.bin.0` |
+| `[RX] Error count` / `Total pulses written` / `Total pulses attempted` | [`main.cpp:642-644`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L642-L644) | `[RX] Total pulses written: 5207400` |
+
 ### Timing Reconstruction
 
 ```
@@ -79,8 +104,11 @@ where `t_start` is the `[START]` wall-clock time from `*_uhd_stdout.log` and
 
 **Error pulses are skipped** (not written to the file). The `[ERROR]` lines in the
 stdout log give the chirp indices of failed pulses. Because each record accumulates
-exactly `num_presums` **good** chirps, an error pulse extends the collection window
-by one `pulse_rep_int`. The exact timestamp of record N is:
+exactly `num_presums` **good** chirps
+([`main.cpp:578`](https://github.com/HI-SNR-Lab/uhd_radar/blob/28be9fa86cb4d4b6abf8ffa955b871af4479b3a6/sdr/main.cpp#L578):
+`(pulses_received - error_count) % num_presums == 0`),
+an error pulse extends the collection window by one `pulse_rep_int`. The exact
+timestamp of record N is:
 
 ```
 t[N] = t_start + (N × num_presums + errors_before_N) × pulse_rep_int
