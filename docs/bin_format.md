@@ -71,16 +71,30 @@ All metadata is external to the `.bin` file:
 ### Timing Reconstruction
 
 ```
-t[N] = t_start + N × record_dt
+t[N] ≈ t_start + N × record_dt
 ```
 
 where `t_start` is the `[START]` wall-clock time from `*_uhd_stdout.log` and
 `record_dt = pulse_rep_int × num_presums`.
 
 **Error pulses are skipped** (not written to the file). The `[ERROR]` lines in the
-stdout log give the chirp indices of failed pulses. Because presums are counted
-across good pulses only, error chirps do not shift record timing — the `N × record_dt`
-formula is correct without any error correction.
+stdout log give the chirp indices of failed pulses. Because each record accumulates
+exactly `num_presums` **good** chirps, an error pulse extends the collection window
+by one `pulse_rep_int`. The exact timestamp of record N is:
+
+```
+t[N] = t_start + (N × num_presums + errors_before_N) × pulse_rep_int
+```
+
+where `errors_before_N` is the count of error chirps that fell within records 0…N−1.
+The simple `N × record_dt` formula is therefore an approximation that underestimates
+the actual time by `errors_before_N × pulse_rep_int`. The maximum timing error at the
+end of a session equals `total_errors × pulse_rep_int` (e.g. 617 errors × 200 µs =
+0.12 s for the test-data session — small relative to the 1 Hz GPS sample rate, but
+non-zero).
+
+For higher-accuracy timing, count errors from the log up to each record boundary and
+apply the exact formula above.
 
 ## Multiple File Segments
 
