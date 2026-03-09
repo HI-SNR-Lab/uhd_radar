@@ -39,6 +39,8 @@ packages:
 - i2c-tools
 - rpi.gpio-common
 - util-linux-extra
+- gpsd
+- gpsd-clients
 
 ## Write arbitrary files to the file-system
 write_files:
