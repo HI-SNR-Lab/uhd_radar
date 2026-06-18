@@ -79,6 +79,8 @@ The basic workflow for adding features in should be something like this:
 
 5. Go to GitHub and you'll be prompted to create a [pull request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests). Pull requests are a GitHub feature that lets you and others preview what happens if you merge your branch into the `main` branch. You can send others a link so we can all review the changes you're propsoing, including making comments on them and discussing if there are any issues.
 
+## Committing Procedure
+Before making any changes to ORCA, please review [STYLEGUIDE.md](STYLEGUIDE.md) Additionally, please follow the commit and pull request templates, which will auto-populate whenever requesting to perform either action. 
 
 ## Miscellaneous Notes
 ### Symbol Errors when Compiling 
