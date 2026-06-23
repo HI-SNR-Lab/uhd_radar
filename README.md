@@ -82,7 +82,7 @@ The basic workflow for adding features in should be something like this:
 ## Committing Procedure
 Before making any changes to ORCA, please review [STYLEGUIDE.md](STYLEGUIDE.md).
 
-To utilize the the commit template as shown in the [.gitmessage](https://github.com/HI-SNR-Lab/uhd_radar/blob/main/.gitmessage) file, run `git config commit.template "C:/Users/YOUR_NAME/uhd_radar/.gitmessage"` and edit the portion in quotes to where ever the .gitmessage file is stored. Now after you stage your changes, run `git commit` and the template will open. If you are using VSCode, a new tab with the template will open which you can edit before hitting the blue commit button. Finally you can push your changes. More information on the commit style guide can be found at [COMMITSTYLEGUIDE.md](https://github.com/HI-SNR-Lab/uhd_radar/blob/main/COMMITSTYLEGUIDE.md).
+To utilize the commit template as shown in the [.gitmessage](https://github.com/HI-SNR-Lab/uhd_radar/blob/main/.gitmessage) file, run `git config commit.template "C:/Users/YOUR_NAME/uhd_radar/.gitmessage"` and edit the portion in quotes to wherever the .gitmessage file is stored. Now after you stage your changes, run `git commit` and the template will open. If you are using VSCode, a new tab with the template will open which you can edit before hitting the blue commit button. Finally you can push your changes. More information on the commit style guide can be found at [COMMITSTYLEGUIDE.md](https://github.com/HI-SNR-Lab/uhd_radar/blob/main/COMMITSTYLEGUIDE.md).
 
 Please follow the commit and pull request templates, which will auto-populate whenever requesting to perform either action. 
 
