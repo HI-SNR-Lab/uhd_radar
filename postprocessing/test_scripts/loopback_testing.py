@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 import scipy.signal as sp
-sys.path.append("../preprocessing")
+sys.path.append("../../preprocessing")
 from generate_chirp import generate_chirp
 
 def load_data(prefix):
@@ -141,7 +141,7 @@ def compress(stacked, chirp, sample_rate):
     fast_time, x = processing.pulse_compress(stacked, chirp, sample_rate)
     return fast_time, x
 
-def main():
+def main(prefix):
     #prefix = "../../data/20260219_202834"
     #prefix = "../../data/20260218_233213"
     slowtime, sample_rate, rx = load_data(prefix)
