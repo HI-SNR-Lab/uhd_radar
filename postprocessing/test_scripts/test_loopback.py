@@ -29,3 +29,12 @@ with open(args.yaml_file) as stream:
    output_dir = config['FILES'].get('output_dir', 'data')
    rx_samps = output_dir + "/" + timestamp + "_rx_samps.bin" # Received data to analyze
 
+   rx_sig = pr.extractSig(rx_samps)
+   tx_sig = pr.extractSig(orig_ch)
+   print("Loaded data")
+
+   lt.plot_chirp(tx_sig, sample_rate)
+   print("Plotting chirp")
+
+   print("running main")
+   lt.main(rx_samps)
