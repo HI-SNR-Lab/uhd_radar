@@ -302,7 +302,6 @@ int UHD_SAFE_MAIN(int argc, char *argv[]) {
   save_loc = std::filesystem::path(output_dir).string() + "/" + save_loc;
   gps_save_loc = std::filesystem::path(output_dir).string() + "/" + gps_save_loc;
 
-
   // Calculated parameters
 
   tr_off_delay = chirp.getTxDuration() + chirp.getTrOffTrail(); // Time before turning off GPIO
