@@ -1,6 +1,10 @@
 import loopback_testing as lt
 import argparse
+import sys
+
+sys.path.append('postprocessing')
 import processing as pr
+
 from ruamel.yaml import YAML as ym
 
 # Check if a YAML file was provided as a command line argument

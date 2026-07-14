@@ -1,11 +1,13 @@
 import numpy as np
+import sys
+sys.path.append("postprocessing")
 import processing
 import matplotlib.pyplot as plt
 import os
-import sys
 import scipy.signal as sp
-sys.path.append("../../preprocessing")
+sys.path.append("preprocessing")
 from generate_chirp import generate_chirp
+
 
 def load_data(prefix):
     """
