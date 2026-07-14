@@ -1,6 +1,7 @@
 import loopback_testing as lt
 import argparse
 import processing as pr
+from ruamel.yaml import YAML as ym
 
 # Check if a YAML file was provided as a command line argument
 parser = argparse.ArgumentParser()
@@ -33,8 +34,12 @@ with open(args.yaml_file) as stream:
    tx_sig = pr.extractSig(orig_ch)
    print("Loaded data")
 
+   print("rx size is first, tx is second")
+   print(rx_sig.shape)
+   print(tx_sig.shape)
+
    lt.plot_chirp(tx_sig, sample_rate)
    print("Plotting chirp")
 
-   print("running main")
+   print("running main") #Chris' loopback_testing code 
    lt.main(rx_samps)
