@@ -34,6 +34,7 @@ with open(args.yaml_file) as stream:
    sig_speed = rx_params["sig_speed"]
 
    print("The timestamp is: ", timestamp)
+   print("If the timestamp is incorrect, adjust plot_samples.py code")
 
    output_dir = config['FILES'].get('output_dir', 'data')
    rx_samps = output_dir + "/" + timestamp + "_rx_samps.bin" # Received data to analyze
