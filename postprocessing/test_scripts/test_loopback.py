@@ -15,7 +15,12 @@ parser.add_argument("yaml_file", nargs='?', default='config/default.yaml',
 args = parser.parse_args()
 
 str_arg = str(args.yaml_file)
+print("original string is:", str_arg)
+#This code takes the timestamp from the "data/yyyymmdd_hhmmss_config.yaml" string
+#If your output_dir isn't data/isn't 4 letters long, then edit the two indices below to line up with the timestamp
 timestamp = str_arg[5:20]
+print("timestamp is:", timestamp)
+print("If the timestamp is incorrect (maybe your output_dir isnt data), you need to edit the code in test_loopback.py")
 
 # Initialize Constants
 yaml = ym()                         # Always use safe load if not dumping
@@ -33,6 +38,7 @@ with open(args.yaml_file) as stream:
 
    output_dir = config['FILES'].get('output_dir', 'data')
    rx_samps = output_dir + "/" + timestamp + "_rx_samps.bin" # Received data to analyze
+   prefix = output_dir + "/" + timestamp # Format neccessary for loading data
 
    rx_sig = pr.extractSig(rx_samps)
    tx_sig = pr.extractSig(orig_ch)
@@ -46,4 +52,4 @@ with open(args.yaml_file) as stream:
    print("Plotting chirp")
 
    print("running main") #Chris' loopback_testing code 
-   lt.main(rx_samps)
+   lt.main(prefix)
