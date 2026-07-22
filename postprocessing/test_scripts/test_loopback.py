@@ -34,8 +34,6 @@ with open(args.yaml_file) as stream:
    echo_start = rx_params["echo_start"]
    sig_speed = rx_params["sig_speed"]
 
-   print("The timestamp is: ", timestamp)
-
    output_dir = config['FILES'].get('output_dir', 'data')
    rx_samps = output_dir + "/" + timestamp + "_rx_samps.bin" # Received data to analyze
    prefix = output_dir + "/" + timestamp # Format neccessary for loading data
