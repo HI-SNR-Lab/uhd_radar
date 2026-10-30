@@ -6,22 +6,25 @@ on:
 
 jobs:
   auto-testing:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-26.04 ships Boost 1.90, which drops the boost_system CMake
+    # config that UHD's UHDBoost.cmake requires
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Up Conda Environment
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
+          miniconda-version: "latest"
           environment-file: environment-rpi.yaml
           activate-environment: uhd
-          auto-activate-base: false
+          auto-activate: false
           python-version: 3.11.13
 
       - name: Cache Conda Environment
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /home/runner/miniconda3/envs/uhd
           key: conda-env-full-${{ runner.os }}-${{ hashFiles('environment-rpi.yaml') }}-pytest
