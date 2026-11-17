@@ -10,6 +10,11 @@ from datetime import datetime
 from ruamel.yaml import YAML as ym
 
 def save_data(yaml_filename, extra_files={}, alternative_rx_samps_loc=None, num_files=1):
+    '''
+    The data will be saved to a chosen location based on the output_dir, save_loc, and gps_loc 
+    information in the config file. This also can save data into seperate parts and save gps 
+    data if the settings are true in the config file under under RUN_MANAGER. 
+    '''
     # Initialize Constants
     yaml = ym()
     with open(yaml_filename) as stream:
@@ -45,6 +50,10 @@ def save_data(yaml_filename, extra_files={}, alternative_rx_samps_loc=None, num_
     return file_prefix
 
 if __name__ == "__main__":
+    '''
+    When the file is run with a config file, it will run the save data function with information 
+    from the given file. If no config file is specified, the config file used is default.yaml.  
+    '''
     # Check if a YAML file was provided as a command line argument
     parser = argparse.ArgumentParser()
     parser.add_argument("yaml_file", nargs='?', default='config/default.yaml',
